@@ -1,0 +1,8 @@
+{
+  "name": "debt-manager-license-server",
+  "version": "1.0.0",
+  "description": "خادم تفعيل وإدارة اشتراكات برنامج إدارة الديون",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "dependencies": { "express": "^4.19.2" }
+}
