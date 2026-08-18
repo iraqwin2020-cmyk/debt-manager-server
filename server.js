@@ -1,14 +1,15 @@
 /* =========================================================
-   خادم تفعيل وإدارة اشتراكات - برنامج إدارة الديون (v2)
-   Node.js + Express + node:sqlite
+   خادم تفعيل وإدارة اشتراكات - برنامج إدارة الديون (v3)
+   Node.js + Express + ملف JSON محلي (بدون أي تبعية أصلية،
+   يعمل على أي إصدار Node.js وأي منصة استضافة بدون استثناء)
    ========================================================= */
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const crypto = require('crypto');
-const { DatabaseSync } = require('node:sqlite');
 
 const PORT = process.env.PORT || 3000;
-const DB_FILE = process.env.DB_FILE || path.join(__dirname, 'licenses.db');
+const DB_FILE = process.env.DB_FILE || path.join(__dirname, 'data.json');
 const INITIAL_ADMIN_USER = process.env.ADMIN_USER || 'admin';
 const INITIAL_ADMIN_PASS = process.env.ADMIN_PASS || 'ChangeMe123';
 
@@ -19,73 +20,39 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-/* ---------------- Database ---------------- */
-const db = new DatabaseSync(DB_FILE);
-db.exec(`
-  CREATE TABLE IF NOT EXISTS licenses (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    code TEXT UNIQUE NOT NULL,
-    customer_name TEXT NOT NULL,
-    phone TEXT,
-    plan TEXT DEFAULT 'شهري',
-    months INTEGER DEFAULT 1,
-    trial_days INTEGER,
-    price REAL DEFAULT 0,
-    status TEXT DEFAULT 'pending',
-    created_at TEXT NOT NULL,
-    activated_at TEXT,
-    expires_at TEXT,
-    device_info TEXT,
-    notes TEXT
-  );
-  CREATE TABLE IF NOT EXISTS join_requests (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    customer_name TEXT NOT NULL,
-    phone TEXT NOT NULL,
-    note TEXT,
-    status TEXT DEFAULT 'pending',
-    created_at TEXT NOT NULL
-  );
-  CREATE TABLE IF NOT EXISTS admin_sessions (
-    token TEXT PRIMARY KEY,
-    created_at TEXT NOT NULL
-  );
-  CREATE TABLE IF NOT EXISTS admin_credentials (
-    id INTEGER PRIMARY KEY CHECK (id = 1),
-    username TEXT NOT NULL,
-    password TEXT NOT NULL
-  );
-  CREATE TABLE IF NOT EXISTS app_info (
-    id INTEGER PRIMARY KEY CHECK (id = 1),
-    company_name TEXT DEFAULT '',
-    whatsapp TEXT DEFAULT '',
-    email TEXT DEFAULT '',
-    about_text TEXT DEFAULT ''
-  );
-  CREATE TABLE IF NOT EXISTS login_attempts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    ip TEXT NOT NULL,
-    success INTEGER NOT NULL,
-    created_at TEXT NOT NULL
-  );
-  CREATE TABLE IF NOT EXISTS audit_log (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    action TEXT NOT NULL,
-    details TEXT,
-    created_at TEXT NOT NULL
-  );
-`);
-
-const existingCred = db.prepare('SELECT * FROM admin_credentials WHERE id = 1').get();
-if (!existingCred) {
-  db.prepare('INSERT INTO admin_credentials (id, username, password) VALUES (1, ?, ?)')
-    .run(INITIAL_ADMIN_USER, INITIAL_ADMIN_PASS);
+/* ---------------- Database (JSON file, zero native dependencies) ---------------- */
+function defaultData() {
+  return {
+    licenses: [],
+    join_requests: [],
+    admin_sessions: [],
+    admin_credentials: { username: INITIAL_ADMIN_USER, password: INITIAL_ADMIN_PASS },
+    app_info: { company_name: '', whatsapp: '', email: '', about_text: '' },
+    login_attempts: [],
+    audit_log: [],
+    _seq: { licenses: 0, join_requests: 0, login_attempts: 0, audit_log: 0 },
+  };
 }
-const existingAppInfo = db.prepare('SELECT * FROM app_info WHERE id = 1').get();
-if (!existingAppInfo) {
-  db.prepare('INSERT INTO app_info (id, company_name, whatsapp, email, about_text) VALUES (1, ?, ?, ?, ?)')
-    .run('', '', '', '');
+let DB;
+function loadDB() {
+  try {
+    const raw = fs.readFileSync(DB_FILE, 'utf8');
+    DB = JSON.parse(raw);
+    const def = defaultData();
+    for (const k of Object.keys(def)) if (!(k in DB)) DB[k] = def[k];
+  } catch (e) {
+    DB = defaultData();
+    saveDB();
+  }
 }
+function saveDB() {
+  fs.writeFileSync(DB_FILE, JSON.stringify(DB, null, 2), 'utf8');
+}
+function nextId(table) {
+  DB._seq[table] = (DB._seq[table] || 0) + 1;
+  return DB._seq[table];
+}
+loadDB();
 
 /* ---------------- Helpers ---------------- */
 function genCode() {
@@ -106,8 +73,8 @@ function computeExpiry(row, fromISO) {
   return row.trial_days ? addDays(fromISO, row.trial_days) : addMonths(fromISO, row.months || 1);
 }
 function logAudit(action, details) {
-  db.prepare('INSERT INTO audit_log (action, details, created_at) VALUES (?, ?, ?)')
-    .run(action, JSON.stringify(details || {}), nowISO());
+  DB.audit_log.unshift({ id: nextId('audit_log'), action, details: JSON.stringify(details || {}), created_at: nowISO() });
+  if (DB.audit_log.length > 500) DB.audit_log.length = 500;
 }
 function clientIp(req) {
   return (req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown').split(',')[0].trim();
@@ -116,47 +83,48 @@ function requireAdmin(req, res, next) {
   const auth = req.headers.authorization || '';
   const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
   if (!token) return res.status(401).json({ error: 'unauthorized' });
-  const row = db.prepare('SELECT token FROM admin_sessions WHERE token = ?').get(token);
-  if (!row) return res.status(401).json({ error: 'unauthorized' });
+  const found = DB.admin_sessions.find(s => s.token === token);
+  if (!found) return res.status(401).json({ error: 'unauthorized' });
   next();
 }
 function refreshStatus(row) {
   if (row.status === 'active' && row.expires_at && new Date(row.expires_at) < new Date()) {
-    db.prepare('UPDATE licenses SET status = ? WHERE id = ?').run('expired', row.id);
     row.status = 'expired';
   }
   return row;
 }
+function findLicense(id) {
+  return DB.licenses.find(l => String(l.id) === String(id));
+}
 
 /* ---------------- Public API (يستخدمها تطبيق العميل) ---------------- */
-/* ---------------- Public: Join Requests (from customer app) ---------------- */
 app.post('/api/join-request', (req, res) => {
   const { customerName, phone, note } = req.body || {};
   if (!customerName || !phone) return res.status(400).json({ ok: false, error: 'missing_fields' });
   if (!/^[0-9]{11}$/.test(phone)) return res.status(400).json({ ok: false, error: 'invalid_phone' });
-  const created = nowISO();
-  db.prepare(`INSERT INTO join_requests (customer_name, phone, note, status, created_at) VALUES (?, ?, ?, 'pending', ?)`)
-    .run(customerName, phone, note || '', created);
+  DB.join_requests.unshift({ id: nextId('join_requests'), customer_name: customerName, phone, note: note || '', status: 'pending', created_at: nowISO() });
   logAudit('join_request_received', { customerName, phone });
+  saveDB();
   res.json({ ok: true });
 });
 
 app.post('/api/activate', (req, res) => {
   const { code, deviceInfo } = req.body || {};
   if (!code) return res.status(400).json({ valid: false, reason: 'missing_code' });
-  let row = db.prepare('SELECT * FROM licenses WHERE code = ?').get(code.trim().toUpperCase());
+  let row = DB.licenses.find(l => l.code === code.trim().toUpperCase());
   if (!row) return res.json({ valid: false, reason: 'not_found' });
   row = refreshStatus(row);
   if (row.status === 'revoked') return res.json({ valid: false, reason: 'revoked' });
   if (row.status === 'expired') return res.json({ valid: false, reason: 'expired', expiresAt: row.expires_at });
   if (row.status === 'pending') {
     const now = nowISO();
-    const expires = computeExpiry(row, now);
-    db.prepare('UPDATE licenses SET status = ?, activated_at = ?, expires_at = ?, device_info = ? WHERE id = ?')
-      .run('active', now, expires, deviceInfo || '', row.id);
-    row = db.prepare('SELECT * FROM licenses WHERE id = ?').get(row.id);
+    row.status = 'active';
+    row.activated_at = now;
+    row.expires_at = computeExpiry(row, now);
+    row.device_info = deviceInfo || '';
     logAudit('client_activated', { code: row.code, customer: row.customer_name });
   }
+  saveDB();
   return res.json({
     valid: true, customerName: row.customer_name, plan: row.plan,
     activatedAt: row.activated_at, expiresAt: row.expires_at,
@@ -166,29 +134,29 @@ app.post('/api/activate', (req, res) => {
 app.post('/api/check-subscription', (req, res) => {
   const { code } = req.body || {};
   if (!code) return res.status(400).json({ valid: false, reason: 'missing_code' });
-  let row = db.prepare('SELECT * FROM licenses WHERE code = ?').get(code.trim().toUpperCase());
+  let row = DB.licenses.find(l => l.code === code.trim().toUpperCase());
   if (!row) return res.json({ valid: false, reason: 'not_found' });
   row = refreshStatus(row);
+  saveDB();
   if (row.status !== 'active') return res.json({ valid: false, reason: row.status, expiresAt: row.expires_at });
   return res.json({ valid: true, expiresAt: row.expires_at, plan: row.plan });
 });
 
-// معلومات "حول التطبيق" — يقرؤها تطبيق العميل للعرض فقط (للقراءة، بدون تسجيل دخول)
 app.get('/api/app-info', (req, res) => {
-  const row = db.prepare('SELECT company_name, whatsapp, email, about_text FROM app_info WHERE id = 1').get();
+  const info = DB.app_info;
   res.json({
-    companyName: row.company_name || '',
-    whatsapp: row.whatsapp || '',
-    email: row.email || '',
-    aboutText: row.about_text || '',
+    companyName: info.company_name || '',
+    whatsapp: info.whatsapp || '',
+    email: info.email || '',
+    aboutText: info.about_text || '',
   });
 });
 
 app.post('/api/admin/app-info', requireAdmin, (req, res) => {
   const { companyName, whatsapp, email, aboutText } = req.body || {};
-  db.prepare('UPDATE app_info SET company_name=?, whatsapp=?, email=?, about_text=? WHERE id=1')
-    .run(companyName||'', whatsapp||'', email||'', aboutText||'');
+  DB.app_info = { company_name: companyName || '', whatsapp: whatsapp || '', email: email || '', about_text: aboutText || '' };
   logAudit('app_info_updated', {});
+  saveDB();
   res.json({ ok: true });
 });
 
@@ -196,45 +164,46 @@ app.post('/api/admin/app-info', requireAdmin, (req, res) => {
 app.post('/api/admin/login', (req, res) => {
   const ip = clientIp(req);
   const since = new Date(Date.now() - LOCKOUT_MINUTES * 60000).toISOString();
-  const recentFails = db.prepare(
-    'SELECT COUNT(*) as c FROM login_attempts WHERE ip = ? AND success = 0 AND created_at > ?'
-  ).get(ip, since).c;
+  const recentFails = DB.login_attempts.filter(a => a.ip === ip && a.success === 0 && a.created_at > since).length;
 
   if (recentFails >= MAX_LOGIN_ATTEMPTS) {
     return res.status(429).json({ error: 'too_many_attempts', retryAfterMinutes: LOCKOUT_MINUTES });
   }
 
   const { username, password } = req.body || {};
-  const cred = db.prepare('SELECT * FROM admin_credentials WHERE id = 1').get();
+  const cred = DB.admin_credentials;
   const ok = cred && username === cred.username && password === cred.password;
 
-  db.prepare('INSERT INTO login_attempts (ip, success, created_at) VALUES (?, ?, ?)').run(ip, ok ? 1 : 0, nowISO());
+  DB.login_attempts.push({ id: nextId('login_attempts'), ip, success: ok ? 1 : 0, created_at: nowISO() });
+  if (DB.login_attempts.length > 1000) DB.login_attempts = DB.login_attempts.slice(-500);
 
   if (!ok) {
     logAudit('login_failed', { ip, username });
+    saveDB();
     return res.status(401).json({ error: 'invalid_credentials', attemptsLeft: Math.max(0, MAX_LOGIN_ATTEMPTS - recentFails - 1) });
   }
   const token = crypto.randomBytes(24).toString('hex');
-  db.prepare('INSERT INTO admin_sessions (token, created_at) VALUES (?, ?)').run(token, nowISO());
+  DB.admin_sessions.push({ token, created_at: nowISO() });
   logAudit('login_success', { ip });
+  saveDB();
   res.json({ token });
 });
 
 app.post('/api/admin/change-password', requireAdmin, (req, res) => {
   const { currentPassword, newUsername, newPassword } = req.body || {};
-  const cred = db.prepare('SELECT * FROM admin_credentials WHERE id = 1').get();
+  const cred = DB.admin_credentials;
   if (currentPassword !== cred.password) return res.status(401).json({ error: 'wrong_current_password' });
   if (!newPassword || newPassword.length < 6) return res.status(400).json({ error: 'password_too_short' });
-  db.prepare('UPDATE admin_credentials SET username = ?, password = ? WHERE id = 1')
-    .run(newUsername || cred.username, newPassword);
+  DB.admin_credentials = { username: newUsername || cred.username, password: newPassword };
   logAudit('password_changed', {});
+  saveDB();
   res.json({ ok: true });
 });
 
 /* ---------------- Admin API: التراخيص (بحث + فلترة) ---------------- */
 app.get('/api/admin/licenses', requireAdmin, (req, res) => {
   const { q, status } = req.query;
-  let rows = db.prepare('SELECT * FROM licenses ORDER BY id DESC').all();
+  let rows = DB.licenses.slice().sort((a, b) => b.id - a.id);
   rows.forEach(refreshStatus);
   if (q) {
     const needle = q.toLowerCase();
@@ -245,11 +214,12 @@ app.get('/api/admin/licenses', requireAdmin, (req, res) => {
     );
   }
   if (status && status !== 'all') rows = rows.filter(r => r.status === status);
+  saveDB();
   res.json(rows);
 });
 
 app.get('/api/admin/licenses/export', requireAdmin, (req, res) => {
-  const rows = db.prepare('SELECT * FROM licenses ORDER BY id DESC').all();
+  const rows = DB.licenses.slice().sort((a, b) => b.id - a.id);
   rows.forEach(refreshStatus);
   const header = ['الاسم', 'الهاتف', 'الكود', 'الخطة', 'السعر', 'الحالة', 'تاريخ الإنشاء', 'تاريخ التفعيل', 'ينتهي بتاريخ'];
   const csvRows = [header.join(',')];
@@ -268,12 +238,14 @@ app.post('/api/admin/licenses', requireAdmin, (req, res) => {
   if (!customerName) return res.status(400).json({ error: 'missing_customer_name' });
   const code = genCode();
   const created = nowISO();
-  const monthsVal = Number(months) || 1;
-  db.prepare(`INSERT INTO licenses (code, customer_name, phone, plan, months, price, status, created_at, expires_at)
-              VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, NULL)`)
-    .run(code, customerName, phone || '', plan || 'شهري', monthsVal, Number(price) || 0, created);
-  const row = db.prepare('SELECT * FROM licenses WHERE code = ?').get(code);
+  const row = {
+    id: nextId('licenses'), code, customer_name: customerName, phone: phone || '',
+    plan: plan || 'شهري', months: Number(months) || 1, trial_days: null, price: Number(price) || 0,
+    status: 'pending', created_at: created, activated_at: null, expires_at: null, device_info: null, notes: null,
+  };
+  DB.licenses.push(row);
   logAudit('license_created', { code, customerName });
+  saveDB();
   res.json(row);
 });
 
@@ -284,98 +256,108 @@ app.post('/api/admin/licenses/trial', requireAdmin, (req, res) => {
   if (days < 1) return res.status(400).json({ error: 'invalid_trial_days' });
   const code = genCode();
   const created = nowISO();
-  db.prepare(`INSERT INTO licenses (code, customer_name, phone, plan, months, trial_days, price, status, created_at, expires_at)
-              VALUES (?, ?, ?, 'تجريبي', 1, ?, 0, 'pending', ?, NULL)`)
-    .run(code, customerName, phone || '', days, created);
-  const row = db.prepare('SELECT * FROM licenses WHERE code = ?').get(code);
+  const row = {
+    id: nextId('licenses'), code, customer_name: customerName, phone: phone || '',
+    plan: 'تجريبي', months: 1, trial_days: days, price: 0,
+    status: 'pending', created_at: created, activated_at: null, expires_at: null, device_info: null, notes: null,
+  };
+  DB.licenses.push(row);
   logAudit('trial_license_created', { code, customerName, trialDays: days });
+  saveDB();
   res.json(row);
 });
 
 app.post('/api/admin/licenses/:id/renew', requireAdmin, (req, res) => {
   const { months, price } = req.body || {};
-  const row = db.prepare('SELECT * FROM licenses WHERE id = ?').get(req.params.id);
+  const row = findLicense(req.params.id);
   if (!row) return res.status(404).json({ error: 'not_found' });
   if (!row.activated_at) {
-    // Never activated yet: renewing means activating now, counting the full term from today
     const now = nowISO();
-    const expires = computeExpiry(row, now);
-    db.prepare('UPDATE licenses SET status = ?, activated_at = ?, expires_at = ?, price = price + ? WHERE id = ?')
-      .run('active', now, expires, Number(price) || 0, row.id);
+    row.status = 'active';
+    row.activated_at = now;
+    row.expires_at = computeExpiry(row, now);
+    row.price = (row.price || 0) + (Number(price) || 0);
     logAudit('license_activated', { code: row.code });
-    return res.json(db.prepare('SELECT * FROM licenses WHERE id = ?').get(row.id));
+    saveDB();
+    return res.json(row);
   }
   const base = (row.expires_at && new Date(row.expires_at) > new Date()) ? row.expires_at : nowISO();
-  const newExpiry = addMonths(base, months || 1);
-  db.prepare('UPDATE licenses SET expires_at = ?, status = ?, price = price + ? WHERE id = ?')
-    .run(newExpiry, (row.status === 'revoked' || row.status === 'expired') ? 'active' : row.status, Number(price) || 0, row.id);
+  row.expires_at = addMonths(base, months || 1);
+  if (row.status === 'revoked' || row.status === 'expired') row.status = 'active';
+  row.price = (row.price || 0) + (Number(price) || 0);
   logAudit('license_renewed', { code: row.code, months });
-  res.json(db.prepare('SELECT * FROM licenses WHERE id = ?').get(row.id));
+  saveDB();
+  res.json(row);
 });
 
 app.post('/api/admin/licenses/:id/revoke', requireAdmin, (req, res) => {
-  const row = db.prepare('SELECT * FROM licenses WHERE id = ?').get(req.params.id);
-  db.prepare('UPDATE licenses SET status = ? WHERE id = ?').run('revoked', req.params.id);
+  const row = findLicense(req.params.id);
+  if (row) row.status = 'revoked';
   logAudit('license_revoked', { code: row && row.code });
-  res.json(db.prepare('SELECT * FROM licenses WHERE id = ?').get(req.params.id));
+  saveDB();
+  res.json(row || {});
 });
 
 app.post('/api/admin/licenses/:id/set-expiry', requireAdmin, (req, res) => {
   const { expiresAt } = req.body || {};
-  const row = db.prepare('SELECT * FROM licenses WHERE id = ?').get(req.params.id);
+  const row = findLicense(req.params.id);
   if (!row) return res.status(404).json({ error: 'not_found' });
   if (!expiresAt) return res.status(400).json({ error: 'missing_expires_at' });
-  db.prepare('UPDATE licenses SET expires_at = ? WHERE id = ?').run(expiresAt, row.id);
   logAudit('expiry_manually_fixed', { code: row.code, from: row.expires_at, to: expiresAt });
-  res.json(db.prepare('SELECT * FROM licenses WHERE id = ?').get(row.id));
+  row.expires_at = expiresAt;
+  saveDB();
+  res.json(row);
 });
 
 app.post('/api/admin/licenses/:id/reactivate', requireAdmin, (req, res) => {
-  const row = db.prepare('SELECT * FROM licenses WHERE id = ?').get(req.params.id);
+  const row = findLicense(req.params.id);
   if (!row) return res.status(404).json({ error: 'not_found' });
-  const newStatus = row.activated_at ? 'active' : 'pending';
-  db.prepare('UPDATE licenses SET status = ? WHERE id = ?').run(newStatus, row.id);
+  row.status = row.activated_at ? 'active' : 'pending';
   logAudit('license_reactivated', { code: row.code });
-  res.json(db.prepare('SELECT * FROM licenses WHERE id = ?').get(row.id));
+  saveDB();
+  res.json(row);
 });
 
 app.post('/api/admin/licenses/:id/activate', requireAdmin, (req, res) => {
-  const row = db.prepare('SELECT * FROM licenses WHERE id = ?').get(req.params.id);
+  const row = findLicense(req.params.id);
   if (!row) return res.status(404).json({ error: 'not_found' });
   const now = nowISO();
-  const expires = computeExpiry(row, now);
-  db.prepare('UPDATE licenses SET status = ?, activated_at = ?, expires_at = ? WHERE id = ?')
-    .run('active', now, expires, row.id);
+  row.status = 'active';
+  row.activated_at = now;
+  row.expires_at = computeExpiry(row, now);
   logAudit('license_activated', { code: row.code });
-  res.json(db.prepare('SELECT * FROM licenses WHERE id = ?').get(row.id));
+  saveDB();
+  res.json(row);
 });
 
 /* ---------------- Admin: Join Requests ---------------- */
 app.get('/api/admin/join-requests', requireAdmin, (req, res) => {
-  const rows = db.prepare(`SELECT * FROM join_requests ORDER BY id DESC`).all();
-  res.json(rows);
+  res.json(DB.join_requests.slice().sort((a, b) => b.id - a.id));
 });
 
 app.post('/api/admin/join-requests/:id/dismiss', requireAdmin, (req, res) => {
-  const row = db.prepare('SELECT * FROM join_requests WHERE id = ?').get(req.params.id);
+  const row = DB.join_requests.find(r => String(r.id) === String(req.params.id));
   if (!row) return res.status(404).json({ error: 'not_found' });
-  db.prepare(`UPDATE join_requests SET status = 'dismissed' WHERE id = ?`).run(row.id);
+  row.status = 'dismissed';
   logAudit('join_request_dismissed', { customerName: row.customer_name });
+  saveDB();
   res.json({ ok: true });
 });
 
 app.post('/api/admin/join-requests/:id/mark-handled', requireAdmin, (req, res) => {
-  const row = db.prepare('SELECT * FROM join_requests WHERE id = ?').get(req.params.id);
+  const row = DB.join_requests.find(r => String(r.id) === String(req.params.id));
   if (!row) return res.status(404).json({ error: 'not_found' });
-  db.prepare(`UPDATE join_requests SET status = 'handled' WHERE id = ?`).run(row.id);
+  row.status = 'handled';
+  saveDB();
   res.json({ ok: true });
 });
 
 app.get('/api/admin/stats', requireAdmin, (req, res) => {
-  const rows = db.prepare('SELECT * FROM licenses').all();
+  const rows = DB.licenses.slice();
   rows.forEach(refreshStatus);
   const revenue = rows.reduce((sum, r) => sum + (r.price || 0), 0);
-  const pendingRequests = db.prepare(`SELECT COUNT(*) as c FROM join_requests WHERE status = 'pending'`).get().c;
+  const pendingRequests = DB.join_requests.filter(r => r.status === 'pending').length;
+  saveDB();
   res.json({
     total: rows.length,
     active: rows.filter(r => r.status === 'active').length,
@@ -388,7 +370,7 @@ app.get('/api/admin/stats', requireAdmin, (req, res) => {
 });
 
 app.get('/api/admin/audit-log', requireAdmin, (req, res) => {
-  const rows = db.prepare('SELECT * FROM audit_log ORDER BY id DESC LIMIT 200').all();
+  const rows = DB.audit_log.slice(0, 200);
   res.json(rows.map(r => ({ ...r, details: JSON.parse(r.details || '{}') })));
 });
 
