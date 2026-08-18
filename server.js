@@ -293,10 +293,11 @@ app.post('/api/admin/licenses/:id/renew', requireAdmin, (req, res) => {
     return res.json(row);
   }
   const base = (row.expires_at && new Date(row.expires_at) > new Date()) ? row.expires_at : nowISO();
-  row.expires_at = addMonths(base, months || 1);
+  const durationMonths = months || row.months || 1;
+  row.expires_at = addMonths(base, durationMonths);
   if (row.status === 'revoked' || row.status === 'expired') row.status = 'active';
   row.price = (row.price || 0) + (Number(price) || 0);
-  logAudit('license_renewed', { code: row.code, months });
+  logAudit('license_renewed', { code: row.code, months: durationMonths });
   saveDB();
   res.json(row);
 });
@@ -418,6 +419,33 @@ app.post('/api/admin/licenses/:id/delete', requireAdmin, (req, res) => {
   logAudit('license_deleted', { code: row.code, customerName: row.customer_name });
   saveDB();
   res.json({ ok: true });
+});
+
+app.post('/api/admin/licenses/:id/edit', requireAdmin, (req, res) => {
+  const { customerName, phone, plan, price } = req.body || {};
+  const row = findLicense(req.params.id);
+  if (!row) return res.status(404).json({ error: 'not_found' });
+  if (!customerName) return res.status(400).json({ error: 'missing_customer_name' });
+  const planChanged = plan && row.plan !== plan;
+  const wasLocked = row.status === 'active' && row.expires_at && new Date(row.expires_at) > new Date();
+  row.customer_name = customerName;
+  row.phone = phone || '';
+  if (plan) row.plan = plan;
+  row.price = Number(price) || 0;
+  if (planChanged) {
+    const planDef = DB.plans.find(p => p.name === row.plan);
+    row.months = planDef ? planDef.months : (row.months || 1);
+    if (row.activated_at && !wasLocked) {
+      const now = nowISO();
+      row.activated_at = now;
+      row.expires_at = addMonths(now, row.months);
+      row.status = 'active';
+      logAudit('license_plan_upgraded', { code: row.code, newPlan: row.plan, months: row.months });
+    }
+  }
+  logAudit('license_edited', { code: row.code });
+  saveDB();
+  res.json(row);
 });
 
 app.listen(PORT, () => {
