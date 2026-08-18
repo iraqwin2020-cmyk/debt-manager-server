@@ -80,10 +80,23 @@
   .err-msg{color:var(--danger); font-size:12px;}
   .modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:100; display:none; align-items:center; justify-content:center; padding:16px;}
   .modal-overlay.open{display:flex;}
+  #confirm-modal-overlay{z-index:200;}
   .modal{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); max-width:480px; width:100%; max-height:88vh; overflow:auto; padding:20px; box-shadow:0 20px 50px rgba(0,0,0,.4);}
   .modal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
   .modal-head h3{margin:0;}
   .modal-close{background:none; border:none; color:var(--text-dim); font-size:18px; cursor:pointer; padding:2px 8px;}
+  .cselect{position:relative;}
+  .cselect select{position:absolute; inset:0; opacity:0; pointer-events:none;}
+  .cselect-trigger{display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; padding:9px 11px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--bg-2); color:var(--text); cursor:pointer; font-size:14px; font-family:inherit;}
+  .cselect-trigger:hover{border-color:var(--accent);}
+  .cselect.open .cselect-trigger{border-color:var(--accent);}
+  .cselect-trigger svg{width:16px; height:16px; color:var(--text-dim); flex-shrink:0; transition:transform .15s;}
+  .cselect.open .cselect-trigger svg{transform:rotate(180deg);}
+  .cselect-list{position:absolute; top:calc(100% + 6px); left:0; right:0; z-index:70; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); box-shadow:0 10px 30px rgba(0,0,0,.4); overflow:hidden; max-height:240px; overflow-y:auto; display:none;}
+  .cselect.open .cselect-list{display:block;}
+  .cselect-option{padding:10px 14px; font-size:13.5px; color:var(--text); cursor:pointer;}
+  .cselect-option:hover{background:var(--card-2);}
+  .cselect-option.selected{background:var(--accent-soft); color:var(--accent); font-weight:700;}
   .field-label{font-size:11px; color:var(--text-dim); display:block; margin-bottom:4px; font-weight:600;}
   .detail-kv{display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); font-size:13px;}
   .detail-kv:last-child{border-bottom:none;}
@@ -312,6 +325,16 @@
   </main>
 </div>
 
+<div class="modal-overlay" id="confirm-modal-overlay">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-head">
+      <h3 id="confirm-modal-title">تأكيد</h3>
+    </div>
+    <p id="confirm-modal-msg" style="font-size:13px; color:var(--text); white-space:pre-line; margin-bottom:18px;"></p>
+    <div class="flex" id="confirm-modal-buttons"></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="detail-modal-overlay">
   <div class="modal">
     <div class="modal-head">
@@ -359,7 +382,110 @@ function logout(){ TOKEN=null; localStorage.removeItem('admin_token'); location.
 
 function fmtDate(iso){ if(!iso) return '-'; const d=new Date(iso); return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0'); }
 function statusLabel(s){ return {active:'نشط', pending:'بانتظار التفعيل', expired:'منتهي', revoked:'متوقف'}[s]||s; }
+/* ---------------- Custom Select Wrapper (matches main app design) ---------------- */
+function enhanceSelects(root){
+  (root||document).querySelectorAll('select').forEach(sel=>{
+    if(sel.dataset.enhanced) return;
+    sel.dataset.enhanced='1';
+    const wrap = document.createElement('div');
+    wrap.className='cselect';
+    sel.parentNode.insertBefore(wrap, sel);
+    wrap.appendChild(sel);
+
+    const trigger = document.createElement('button');
+    trigger.type='button';
+    trigger.className='cselect-trigger';
+    const labelSpan = document.createElement('span');
+    labelSpan.textContent = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : '';
+    trigger.appendChild(labelSpan);
+    trigger.insertAdjacentHTML('beforeend', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>');
+    wrap.appendChild(trigger);
+
+    const list = document.createElement('div');
+    list.className='cselect-list';
+    Array.from(sel.options).forEach((opt,i)=>{
+      const item = document.createElement('div');
+      item.className = 'cselect-option' + (i===sel.selectedIndex ? ' selected':'');
+      item.textContent = opt.text;
+      item.onclick=(e)=>{
+        e.stopPropagation();
+        sel.selectedIndex = i;
+        sel.dispatchEvent(new Event('change', {bubbles:true}));
+        labelSpan.textContent = opt.text;
+        list.querySelectorAll('.cselect-option').forEach(x=>x.classList.remove('selected'));
+        item.classList.add('selected');
+        wrap.classList.remove('open');
+      };
+      list.appendChild(item);
+    });
+    wrap.appendChild(list);
+
+    trigger.onclick=(e)=>{
+      e.stopPropagation();
+      const wasOpen = wrap.classList.contains('open');
+      document.querySelectorAll('.cselect.open').forEach(x=>x.classList.remove('open'));
+      if(!wasOpen) wrap.classList.add('open');
+    };
+  });
+}
+document.addEventListener('click', ()=>{ document.querySelectorAll('.cselect.open').forEach(x=>x.classList.remove('open')); });
+function refreshSelect(sel){
+  if(!sel) return;
+  const wrap = sel.closest('.cselect');
+  if(!wrap) return;
+  const labelSpan = wrap.querySelector('.cselect-trigger span');
+  const list = wrap.querySelector('.cselect-list');
+  if(labelSpan) labelSpan.textContent = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : '';
+  if(list){
+    list.innerHTML = '';
+    Array.from(sel.options).forEach((opt,i)=>{
+      const item = document.createElement('div');
+      item.className = 'cselect-option' + (i===sel.selectedIndex ? ' selected':'');
+      item.textContent = opt.text;
+      item.onclick=(e)=>{
+        e.stopPropagation();
+        sel.selectedIndex = i;
+        sel.dispatchEvent(new Event('change', {bubbles:true}));
+        refreshSelect(sel);
+        wrap.classList.remove('open');
+      };
+      list.appendChild(item);
+    });
+  }
+}
 function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+/* ---------------- Custom in-app confirm/alert (replaces native browser popups) ---------------- */
+function customAlert(message, title){
+  return new Promise((resolve)=>{
+    document.getElementById('confirm-modal-title').textContent = title || 'تنبيه';
+    document.getElementById('confirm-modal-msg').textContent = message;
+    document.getElementById('confirm-modal-buttons').innerHTML = `<button style="width:100%;" id="confirm-ok-btn">حسناً</button>`;
+    document.getElementById('confirm-modal-overlay').classList.add('open');
+    document.getElementById('confirm-ok-btn').onclick = ()=>{
+      document.getElementById('confirm-modal-overlay').classList.remove('open');
+      resolve(true);
+    };
+  });
+}
+function customConfirm(message, title){
+  return new Promise((resolve)=>{
+    document.getElementById('confirm-modal-title').textContent = title || 'تأكيد';
+    document.getElementById('confirm-modal-msg').textContent = message;
+    document.getElementById('confirm-modal-buttons').innerHTML = `
+      <button class="outline" style="flex:1;" id="confirm-cancel-btn">إلغاء</button>
+      <button style="flex:1;" id="confirm-ok-btn">تأكيد</button>
+    `;
+    document.getElementById('confirm-modal-overlay').classList.add('open');
+    document.getElementById('confirm-ok-btn').onclick = ()=>{
+      document.getElementById('confirm-modal-overlay').classList.remove('open');
+      resolve(true);
+    };
+    document.getElementById('confirm-cancel-btn').onclick = ()=>{
+      document.getElementById('confirm-modal-overlay').classList.remove('open');
+      resolve(false);
+    };
+  });
+}
 function isRenewLocked(l){ return !!(l.expires_at && new Date(l.expires_at)>new Date()); }
 function renewButtonLabel(l){ return `تجديد ${esc(l.plan)}`; }
 function getPlanMonths(planName, fallback){ const p=CACHED_PLANS.find(x=>x.name===planName); return p?p.months:(fallback||1); }
@@ -454,7 +580,7 @@ function useRequest(id, name, phone){
   apiJson(`/api/admin/join-requests/${id}/mark-handled`, {method:'POST'});
 }
 async function dismissRequest(id){
-  if(!confirm('تجاهل هذا الطلب؟')) return;
+  if(!(await customConfirm('تجاهل هذا الطلب؟'))) return;
   await apiJson(`/api/admin/join-requests/${id}/dismiss`, {method:'POST'});
   await loadStats();
   await loadRequests();
@@ -518,6 +644,8 @@ async function populatePlanSelect(){
   const current = sel.value;
   sel.innerHTML = CACHED_PLANS.map(p=>`<option value="${esc(p.name)}">${esc(p.name)}</option>`).join('');
   if(CACHED_PLANS.some(p=>p.name===current)) sel.value = current;
+  enhanceSelects();
+  refreshSelect(sel);
   onPlanChange();
 }
 function onPlanChange(){
@@ -541,8 +669,8 @@ async function createLicense(){
   const months = Number(document.getElementById('new-months').value)||1;
   const price = Number(document.getElementById('new-price').value)||0;
   const plan = document.getElementById('new-plan').value;
-  if(!customerName){ alert('اكتب اسم العميل'); return; }
-  if(!isValidPhone(phone)){ alert('رقم الهاتف يجب أن يتكون من 11 رقماً بالضبط، أو اتركه فارغاً'); return; }
+  if(!customerName){ await customAlert('اكتب اسم العميل'); return; }
+  if(!isValidPhone(phone)){ await customAlert('رقم الهاتف يجب أن يتكون من 11 رقماً بالضبط، أو اتركه فارغاً'); return; }
   await apiJson('/api/admin/licenses', {method:'POST', body:JSON.stringify({customerName, phone, months, price, plan})});
   document.getElementById('new-name').value='';
   document.getElementById('new-phone').value='';
@@ -565,7 +693,7 @@ async function addPlan(){
   const name = document.getElementById('plan-name').value.trim();
   const months = Number(document.getElementById('plan-months').value)||1;
   const price = Number(document.getElementById('plan-price').value)||0;
-  if(!name){ alert('اكتب اسم الخطة'); return; }
+  if(!name){ await customAlert('اكتب اسم الخطة'); return; }
   await apiJson('/api/admin/plans', {method:'POST', body:JSON.stringify({name, months, price})});
   document.getElementById('plan-name').value='';
   document.getElementById('plan-months').value='1';
@@ -574,7 +702,7 @@ async function addPlan(){
   await populatePlanSelect();
 }
 async function deletePlan(id){
-  if(!confirm('حذف هذه الخطة؟')) return;
+  if(!(await customConfirm('حذف هذه الخطة؟'))) return;
   await apiJson(`/api/admin/plans/${id}/delete`, {method:'POST'});
   await loadPlans();
   await populatePlanSelect();
@@ -583,9 +711,9 @@ async function createTrialLicense(){
   const customerName = document.getElementById('new-name').value.trim();
   const phone = document.getElementById('new-phone').value.trim();
   const trialDays = Number(document.getElementById('trial-days').value)||7;
-  if(!customerName){ alert('اكتب اسم العميل أولاً'); return; }
-  if(!isValidPhone(phone)){ alert('رقم الهاتف يجب أن يتكون من 11 رقماً بالضبط، أو اتركه فارغاً'); return; }
-  if(trialDays<1){ alert('عدد أيام الفترة التجريبية يجب أن يكون رقماً موجباً'); return; }
+  if(!customerName){ await customAlert('اكتب اسم العميل أولاً'); return; }
+  if(!isValidPhone(phone)){ await customAlert('رقم الهاتف يجب أن يتكون من 11 رقماً بالضبط، أو اتركه فارغاً'); return; }
+  if(trialDays<1){ await customAlert('عدد أيام الفترة التجريبية يجب أن يكون رقماً موجباً'); return; }
   await apiJson('/api/admin/licenses/trial', {method:'POST', body:JSON.stringify({customerName, phone, trialDays})});
   document.getElementById('new-name').value='';
   document.getElementById('new-phone').value='';
@@ -598,15 +726,15 @@ async function doActivate(id){
   refreshModalIfOpenFor(id);
 }
 async function renew(id){
-  if(!confirm('تأكيد تجديد هذا الترخيص؟')) return;
+  if(!(await customConfirm('تأكيد تجديد هذا الترخيص؟'))) return;
   await apiJson(`/api/admin/licenses/${id}/renew`, {method:'POST', body:JSON.stringify({})});
   await loadStats(); await loadLicenses();
   refreshModalIfOpenFor(id);
 }
-async function revoke(id){ if(!confirm('تأكيد إيقاف هذا الترخيص؟ لن يتمكن العميل من استخدام البرنامج حتى تُعيد تفعيله.')) return; await apiJson(`/api/admin/licenses/${id}/revoke`, {method:'POST'}); await loadStats(); await loadLicenses(); refreshModalIfOpenFor(id); }
+async function revoke(id){ if(!(await customConfirm('تأكيد إيقاف هذا الترخيص؟ لن يتمكن العميل من استخدام البرنامج حتى تُعيد تفعيله.'))) return; await apiJson(`/api/admin/licenses/${id}/revoke`, {method:'POST'}); await loadStats(); await loadLicenses(); refreshModalIfOpenFor(id); }
 async function reactivate(id){ await apiJson(`/api/admin/licenses/${id}/reactivate`, {method:'POST'}); await loadStats(); await loadLicenses(); refreshModalIfOpenFor(id); }
 async function deleteLicense(id){
-  if(!confirm('حذف هذا الترخيص نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.')) return;
+  if(!(await customConfirm('حذف هذا الترخيص نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.'))) return;
   await apiJson(`/api/admin/licenses/${id}/delete`, {method:'POST'});
   closeDetailModal();
   await loadStats(); await loadLicenses();
@@ -667,6 +795,7 @@ async function openLicenseDetail(id){
   document.getElementById('detail-modal-overlay').classList.add('open');
   bindPhoneField(document.getElementById('dm-phone'));
   bindMoneyField(document.getElementById('dm-price'));
+  enhanceSelects();
 
   const nameEl = document.getElementById('dm-name');
   const phoneEl = document.getElementById('dm-phone');
