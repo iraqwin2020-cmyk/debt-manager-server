@@ -35,9 +35,13 @@ function defaultData() {
     admin_sessions: [],
     admin_credentials: { username: INITIAL_ADMIN_USER, password: INITIAL_ADMIN_PASS },
     app_info: { company_name: '', whatsapp: '', email: '', about_text: '' },
+    plans: [
+      { id: 1, name: 'شهري', months: 1, price: 15000 },
+      { id: 2, name: 'سنوي', months: 12, price: 150000 },
+    ],
     login_attempts: [],
     audit_log: [],
-    _seq: { licenses: 0, join_requests: 0, login_attempts: 0, audit_log: 0 },
+    _seq: { licenses: 0, join_requests: 0, login_attempts: 0, audit_log: 0, plans: 2 },
   };
 }
 let DB;
@@ -379,6 +383,41 @@ app.get('/api/admin/stats', requireAdmin, (req, res) => {
 app.get('/api/admin/audit-log', requireAdmin, (req, res) => {
   const rows = DB.audit_log.slice(0, 200);
   res.json(rows.map(r => ({ ...r, details: JSON.parse(r.details || '{}') })));
+});
+
+/* ---------------- Admin: Plans ---------------- */
+app.get('/api/admin/plans', requireAdmin, (req, res) => {
+  res.json(DB.plans);
+});
+
+app.post('/api/admin/plans', requireAdmin, (req, res) => {
+  const { name, months, price } = req.body || {};
+  if (!name) return res.status(400).json({ error: 'missing_name' });
+  if (DB.plans.some(p => p.name === name)) return res.status(400).json({ error: 'duplicate_name' });
+  const plan = { id: nextId('plans'), name, months: Number(months) || 1, price: Number(price) || 0 };
+  DB.plans.push(plan);
+  logAudit('plan_created', { name, months: plan.months, price: plan.price });
+  saveDB();
+  res.json(plan);
+});
+
+app.post('/api/admin/plans/:id/delete', requireAdmin, (req, res) => {
+  if (DB.plans.length <= 1) return res.status(400).json({ error: 'must_keep_one_plan' });
+  const plan = DB.plans.find(p => String(p.id) === String(req.params.id));
+  DB.plans = DB.plans.filter(p => String(p.id) !== String(req.params.id));
+  logAudit('plan_deleted', { name: plan && plan.name });
+  saveDB();
+  res.json({ ok: true });
+});
+
+/* ---------------- Admin: Delete license (permanent) ---------------- */
+app.post('/api/admin/licenses/:id/delete', requireAdmin, (req, res) => {
+  const row = findLicense(req.params.id);
+  if (!row) return res.status(404).json({ error: 'not_found' });
+  DB.licenses = DB.licenses.filter(l => String(l.id) !== String(req.params.id));
+  logAudit('license_deleted', { code: row.code, customerName: row.customer_name });
+  saveDB();
+  res.json({ ok: true });
 });
 
 app.listen(PORT, () => {
