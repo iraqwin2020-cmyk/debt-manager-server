@@ -472,7 +472,7 @@ app.post('/api/admin/licenses/:id/edit', requireAdmin, (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`License server running on http://localhost:${PORT}`);
-  console.log(`Admin dashboard: http://localhost:${PORT}/admin.html`);
+  console.log(`Admin dashboard: http://localhost:${PORT}/admin/`);
 }).on('error', (err) => {
   logCrash('SERVER LISTEN FAILED', err);
 });
