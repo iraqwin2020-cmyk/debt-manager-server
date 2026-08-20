@@ -37,7 +37,15 @@ app.use((req, res, next) => {
   next();
 });
 app.use(express.json({ limit: '5mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
+/* حماية أمنية: يمنع الوصول المباشر لمجلد قاعدة البيانات (يحتوي بيانات عملاء حقيقية)
+   وملفات الخادم الحساسة عبر أي رابط مباشر. */
+app.use((req, res, next) => {
+  if (req.path.startsWith('/database') || req.path === '/server.js' || req.path === '/package.json' || req.path === '/crash.log') {
+    return res.status(404).send('Not found');
+  }
+  next();
+});
+app.use(express.static(__dirname));
 
 function safeCodeFile(code) {
   // يمنع أي محاولة للخروج من مجلد database عبر رمز تفعيل ملغوم

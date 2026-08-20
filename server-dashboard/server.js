@@ -47,7 +47,15 @@ app.use((req, res, next) => {
   next();
 });
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+/* حماية أمنية: يمنع الوصول المباشر لأي ملف حساس عبر رابط مباشر (مهم جداً بما أن
+   بنية المجلدات مسطّحة بدون مجلد public منفصل). */
+const PROTECTED_FILES = ['server.js', 'package.json', 'package-lock.json', 'data.json', 'crash.log', 'README.md', '.env'];
+app.use((req, res, next) => {
+  const requested = req.path.replace(/^\/+/, '');
+  if (PROTECTED_FILES.includes(requested)) return res.status(404).send('Not found');
+  next();
+});
+app.use(express.static(__dirname));
 
 /* ---------------- Database (JSON file, zero native dependencies) ---------------- */
 function defaultData() {
