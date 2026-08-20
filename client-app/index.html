@@ -620,7 +620,7 @@ function t(key){ return (I18N[CUR_LANG].strings[key]) || (I18N.ar.strings[key]) 
 /* ---------------- DB (IndexedDB) ---------------- */
 const DB_NAME='DebtManagerDB', DB_STORE='app', DB_KEY='data';
 /* غيّر هذا الرابط لرابط خادم التفعيل الحقيقي الخاص بك بعد نشره، قبل توزيع النسخة على عملائك */
-const LICENSE_SERVER_URL = 'https://debt-manager-server-v5.bonto.run';
+const LICENSE_SERVER_URL = 'https://debts.almuaidi.com';
 let dbConn=null;
 function dbOpen(){
   return new Promise((resolve,reject)=>{
