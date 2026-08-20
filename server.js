@@ -8,6 +8,20 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 
+/* Crash-safe logging: writes any uncaught error to crash.log next to this file, so it can be read via File Manager on shared hosting where console logs aren't visible. */
+process.on('uncaughtException', (err) => {
+  try {
+    fs.appendFileSync(path.join(__dirname, 'crash.log'), `[${new Date().toISOString()}] UNCAUGHT EXCEPTION:\n${err.stack || err}\n\n`);
+  } catch (e) {}
+  console.error(err);
+});
+process.on('unhandledRejection', (err) => {
+  try {
+    fs.appendFileSync(path.join(__dirname, 'crash.log'), `[${new Date().toISOString()}] UNHANDLED REJECTION:\n${err && err.stack || err}\n\n`);
+  } catch (e) {}
+  console.error(err);
+});
+
 const PORT = process.env.PORT || 3000;
 const DB_FILE = process.env.DB_FILE || path.join(__dirname, 'data.json');
 const INITIAL_ADMIN_USER = process.env.ADMIN_USER || 'admin';
