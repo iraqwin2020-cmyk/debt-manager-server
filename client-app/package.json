@@ -1,0 +1,8 @@
+{
+  "name": "debt-manager-client-app-server",
+  "version": "1.0.0",
+  "description": "خادم تطبيق إدارة الديون (يخدم الملفات الثابتة + النسخ الاحتياطي)",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "dependencies": { "express": "^4.19.2" }
+}
