@@ -3,26 +3,34 @@
    Node.js + Express + ملف JSON محلي (بدون أي تبعية أصلية،
    يعمل على أي إصدار Node.js وأي منصة استضافة بدون استثناء)
    ========================================================= */
-const express = require('express');
 const path = require('path');
 const fs = require('fs');
-const crypto = require('crypto');
 
-/* Crash-safe logging: writes any uncaught error to crash.log next to this file, so it can be read via File Manager on shared hosting where console logs aren't visible. */
-process.on('uncaughtException', (err) => {
+/* Crash-safe logging: writes ANY error (even during module loading) to
+   crash.log next to this file, so it can be read via File Manager on
+   shared hosting where console logs aren't visible. Registered FIRST,
+   before any risky require(), so nothing can crash silently. */
+const CRASH_LOG = path.join(__dirname, 'crash.log');
+function logCrash(label, err) {
   try {
-    fs.appendFileSync(path.join(__dirname, 'crash.log'), `[${new Date().toISOString()}] UNCAUGHT EXCEPTION:\n${err.stack || err}\n\n`);
+    fs.appendFileSync(CRASH_LOG, `[${new Date().toISOString()}] ${label}:\n${(err && err.stack) || err}\n\n`);
   } catch (e) {}
-  console.error(err);
-});
-process.on('unhandledRejection', (err) => {
-  try {
-    fs.appendFileSync(path.join(__dirname, 'crash.log'), `[${new Date().toISOString()}] UNHANDLED REJECTION:\n${err && err.stack || err}\n\n`);
-  } catch (e) {}
-  console.error(err);
-});
+  try { console.error(label, err); } catch (e) {}
+}
+process.on('uncaughtException', (err) => logCrash('UNCAUGHT EXCEPTION', err));
+process.on('unhandledRejection', (err) => logCrash('UNHANDLED REJECTION', err));
+
+let express, crypto;
+try {
+  express = require('express');
+  crypto = require('crypto');
+} catch (err) {
+  logCrash('REQUIRE FAILED (is "npm install" needed? run it from cPanel Setup Node.js App)', err);
+  throw err;
+}
 
 const PORT = process.env.PORT || 3000;
+
 const DB_FILE = process.env.DB_FILE || path.join(__dirname, 'data.json');
 const INITIAL_ADMIN_USER = process.env.ADMIN_USER || 'admin';
 const INITIAL_ADMIN_PASS = process.env.ADMIN_PASS || 'ChangeMe123';
@@ -465,4 +473,6 @@ app.post('/api/admin/licenses/:id/edit', requireAdmin, (req, res) => {
 app.listen(PORT, () => {
   console.log(`License server running on http://localhost:${PORT}`);
   console.log(`Admin dashboard: http://localhost:${PORT}/admin.html`);
+}).on('error', (err) => {
+  logCrash('SERVER LISTEN FAILED', err);
 });
