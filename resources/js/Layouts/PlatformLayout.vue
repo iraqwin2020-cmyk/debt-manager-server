@@ -143,25 +143,25 @@ function logout() {
         <!-- القائمة المنسدلة من الأسفل (هاتف) -->
         <div v-if="menuOpen" class="fixed inset-0 z-40 md:hidden">
             <div class="absolute inset-0 bg-black/40" @click="menuOpen = false"></div>
-            <div class="absolute inset-x-0 bottom-0 rounded-t-2xl p-2.5" style="background: var(--surface-card)">
-                <div class="grid grid-cols-4 gap-1">
+            <div class="absolute inset-x-0 bottom-0 rounded-t-2xl p-4 pb-6" style="background: var(--surface-card)">
+                <div class="grid grid-cols-3 gap-2.5">
                     <Link
                         v-for="item in navItems"
                         :key="item.route"
                         :href="route(item.route)"
-                        class="relative rounded-pill border px-1 py-1 text-center text-[0.65rem] font-semibold transition-[border-color]"
+                        class="relative rounded-xl border px-2 py-4 text-center text-sm font-semibold transition-[border-color]"
                         :class="route().current(item.route) ? 'bg-brand-600 text-white' : 'border-[var(--border-subtle)] hover:border-brand-400'"
                         :style="route().current(item.route) ? '' : 'color: var(--text-primary)'"
                         @click="menuOpen = false"
                     >
                         {{ item.label }}
-                        <span v-if="item.badge" class="absolute -top-1 -left-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[0.6rem] font-bold text-white" style="background: #dc2626">{{ item.badge }}</span>
+                        <span v-if="item.badge" class="absolute -top-1 -left-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-bold text-white" style="background: #dc2626">{{ item.badge }}</span>
                     </Link>
                 </div>
-                <div class="mt-2 flex items-center justify-center">
+                <div class="mt-3 flex items-center justify-center">
                     <button
                         type="button"
-                        class="rounded-pill border border-transparent px-4 py-1.5 text-xs font-semibold text-red-600 transition-[border-color] hover:border-red-400"
+                        class="rounded-pill border border-transparent px-4 py-2 text-sm font-semibold text-red-600 transition-[border-color] hover:border-red-400"
                         @click="logout"
                     >
                         تسجيل الخروج

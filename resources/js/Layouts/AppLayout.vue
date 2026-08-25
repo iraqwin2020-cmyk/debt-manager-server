@@ -125,13 +125,13 @@ const dateParts = computed(() => {
         <!-- القائمة المنسدلة من الأسفل (هاتف) -->
         <div v-if="menuOpen" class="fixed inset-0 z-40 md:hidden">
             <div class="absolute inset-0 bg-black/40" @click="menuOpen = false"></div>
-            <div class="absolute inset-x-0 bottom-0 rounded-t-2xl p-2.5" style="background: var(--surface-card)">
-                <div class="grid grid-cols-4 gap-1">
+            <div class="absolute inset-x-0 bottom-0 rounded-t-2xl p-4 pb-6" style="background: var(--surface-card)">
+                <div class="grid grid-cols-3 gap-2.5">
                     <Link
                         v-for="item in navItems"
                         :key="item.route"
                         :href="route(item.route)"
-                        class="rounded-pill border px-1 py-1 text-center text-[0.65rem] font-semibold transition-[border-color]"
+                        class="rounded-xl border px-2 py-4 text-center text-sm font-semibold transition-[border-color]"
                         :class="route().current(item.route) ? 'bg-brand-600 text-white' : 'border-[var(--border-subtle)] hover:border-brand-400'"
                         :style="route().current(item.route) ? '' : 'color: var(--text-primary)'"
                         @click="menuOpen = false"
@@ -141,7 +141,7 @@ const dateParts = computed(() => {
                 </div>
                 <button
                     type="button"
-                    class="mt-2 mr-auto flex h-6 w-6 items-center justify-center rounded-full border border-transparent text-xs transition-[border-color] hover:border-brand-400"
+                    class="mt-3 mr-auto flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-sm transition-[border-color] hover:border-brand-400"
                     :title="theme === 'dark' ? 'الوضع الفاتح' : 'الوضع الداكن'"
                     @click="toggleTheme"
                 >

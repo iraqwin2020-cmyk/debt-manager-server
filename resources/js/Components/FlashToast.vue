@@ -14,7 +14,7 @@ const codeCopied = ref(false);
 function copyGeneratedCode() {
     navigator.clipboard?.writeText(generatedCode.value.code);
     codeCopied.value = true;
-    setTimeout(() => (codeCopied.value = false), 2000);
+    setTimeout(() => (codeCopied.value = false), 2200);
 }
 
 const generatedCodeWhatsappHref = computed(() => {
