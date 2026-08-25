@@ -6,6 +6,7 @@ const props = defineProps({ rememberedPhone: { type: String, default: null } });
 const form = useForm({
     phone: props.rememberedPhone ?? '',
     password: '',
+    remember: true,
 });
 
 function submit() {
@@ -48,6 +49,11 @@ function submit() {
                 />
                 <p v-if="form.errors.password" class="mt-1 text-sm text-red-600">{{ form.errors.password }}</p>
             </div>
+
+            <label class="flex items-center gap-2 text-sm font-semibold">
+                <input v-model="form.remember" type="checkbox" class="h-4 w-4 rounded accent-brand-600" />
+                تذكرني
+            </label>
 
             <button
                 type="submit"

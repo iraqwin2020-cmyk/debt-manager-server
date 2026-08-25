@@ -40,14 +40,16 @@ class AuthenticatedSessionController extends Controller
 
         RateLimiter::clear($request->throttleKey());
 
+        $remember = $request->boolean('remember', true);
+
         if ($user->isPlatformAdmin()) {
-            Auth::guard('platform')->login($user, true);
+            Auth::guard('platform')->login($user, $remember);
             $request->session()->regenerate();
 
             return redirect()->intended(route('platform.dashboard', absolute: false));
         }
 
-        Auth::guard('web')->login($user, true);
+        Auth::guard('web')->login($user, $remember);
         $request->session()->regenerate();
 
         $tenant = $user->tenant;
