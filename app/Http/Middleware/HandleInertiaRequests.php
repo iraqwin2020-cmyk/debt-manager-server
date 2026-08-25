@@ -7,6 +7,7 @@ use App\Models\PlatformNotification;
 use App\Models\PlatformSetting;
 use App\Models\Tenant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -20,7 +21,7 @@ class HandleInertiaRequests extends Middleware
 
     public function share(Request $request): array
     {
-        $user = $request->user();
+        $user = $request->is('platform*') ? Auth::guard('platform')->user() : Auth::guard('web')->user();
 
         return [
             ...parent::share($request),

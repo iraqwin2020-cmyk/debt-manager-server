@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
 use App\Services\DeviceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -26,7 +28,9 @@ class AuthenticatedSessionController extends Controller
     {
         $request->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($request->only('phone', 'password'), true)) {
+        $user = User::where('phone', $request->input('phone'))->first();
+
+        if (! $user || ! Hash::check($request->input('password'), $user->password)) {
             RateLimiter::hit($request->throttleKey());
 
             throw ValidationException::withMessages([
@@ -35,20 +39,21 @@ class AuthenticatedSessionController extends Controller
         }
 
         RateLimiter::clear($request->throttleKey());
-        $request->session()->regenerate();
-
-        $user = Auth::user();
 
         if ($user->isPlatformAdmin()) {
+            Auth::guard('platform')->login($user, true);
+            $request->session()->regenerate();
+
             return redirect()->intended(route('platform.dashboard', absolute: false));
         }
+
+        Auth::guard('web')->login($user, true);
+        $request->session()->regenerate();
 
         $tenant = $user->tenant;
 
         if (in_array($tenant->status, ['suspended', 'cancelled'], true)) {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+            Auth::guard('web')->logout();
 
             throw ValidationException::withMessages([
                 'phone' => $tenant->status === 'suspended'
@@ -60,9 +65,7 @@ class AuthenticatedSessionController extends Controller
         $result = $devices->checkAndRegister($tenant);
 
         if (! $result['allowed']) {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+            Auth::guard('web')->logout();
 
             throw ValidationException::withMessages([
                 'phone' => 'وصلت للحد الأقصى لعدد الأجهزة المسموح بها بباقتك الحالية. سجّل خروج من جهاز آخر أولاً، أو رقّي باقتك.',
@@ -76,17 +79,20 @@ class AuthenticatedSessionController extends Controller
 
     public function destroy(Request $request, DeviceService $devices): RedirectResponse
     {
-        $user = Auth::user();
+        $guardName = $request->is('platform*') ? 'platform' : 'web';
+        $user = Auth::guard($guardName)->user();
 
-        if ($user && $user->tenant_id) {
+        if ($guardName === 'web' && $user?->tenant_id) {
             $devices->releaseCurrentDevice($user->tenant);
         }
 
-        Auth::guard('web')->logout();
-
-        $request->session()->invalidate();
+        Auth::guard($guardName)->logout();
         $request->session()->regenerateToken();
 
-        return redirect('/')->withCookie(cookie()->forget(DeviceService::COOKIE_NAME));
+        $response = redirect($guardName === 'platform' ? '/login' : '/');
+
+        return $guardName === 'web'
+            ? $response->withCookie(cookie()->forget(DeviceService::COOKIE_NAME))
+            : $response;
     }
 }

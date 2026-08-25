@@ -55,7 +55,7 @@ class RegisteredUserController extends Controller
         });
 
         $user = $tenant->users()->first();
-        Auth::login($user);
+        Auth::guard('web')->login($user);
 
         $result = $devices->checkAndRegister($tenant);
         $response = redirect()->intended(route('dashboard', absolute: false));

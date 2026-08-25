@@ -11,7 +11,7 @@ use App\Http\Controllers\App\SettingsController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'owner'])->prefix('app')->name('app.')->group(function () {
+Route::middleware(['auth:web', 'owner'])->prefix('app')->name('app.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('debtors/favorites', [DebtorController::class, 'favorites'])->name('debtors.favorites');

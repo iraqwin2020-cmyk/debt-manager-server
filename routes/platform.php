@@ -8,10 +8,12 @@ use App\Http\Controllers\Platform\PlanRequestController;
 use App\Http\Controllers\Platform\PlatformDashboardController;
 use App\Http\Controllers\Platform\PlatformSettingsController;
 use App\Http\Controllers\Platform\SubscriberController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'platform_admin'])->prefix('platform')->name('platform.')->group(function () {
+Route::middleware(['auth:platform', 'platform_admin'])->prefix('platform')->name('platform.')->group(function () {
     Route::get('/', [PlatformDashboardController::class, 'index'])->name('dashboard');
+    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
     Route::get('subscribers', [SubscriberController::class, 'index'])->name('subscribers.index');
     Route::get('subscribers/{tenant}', [SubscriberController::class, 'show'])->name('subscribers.show');

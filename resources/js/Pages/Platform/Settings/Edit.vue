@@ -49,7 +49,7 @@ function saveAbout() {
 }
 
 function logout() {
-    useForm({}).post(route('logout'));
+    useForm({}).post(route('platform.logout'));
 }
 </script>
 

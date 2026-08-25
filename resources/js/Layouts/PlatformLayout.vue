@@ -46,7 +46,7 @@ function toggleTheme() {
 onMounted(() => applyTheme(theme.value));
 
 function logout() {
-    router.post(route('logout'));
+    router.post(route('platform.logout'));
 }
 </script>
 
