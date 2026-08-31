@@ -60,17 +60,18 @@ class DebtorController extends Controller
     {
         return Inertia::render('App/Debtors/Show', [
             'debtor' => $debtor,
-            'hasIdDocument' => (bool) $debtor->id_document_image,
+            'documentCount' => count($debtor->id_document_images ?? []),
             'guarantors' => $debtor->guarantors(),
             'debts' => $debtor->debts()->latest()->get(),
         ]);
     }
 
-    public function showDocument(Debtor $debtor)
+    public function showDocument(Debtor $debtor, int $index)
     {
-        abort_unless($debtor->id_document_image, 404);
+        $paths = $debtor->id_document_images ?? [];
+        abort_unless(array_key_exists($index, $paths), 404);
 
-        return Storage::disk('local')->response($debtor->id_document_image);
+        return Storage::disk('local')->response($paths[$index]);
     }
 
     public function create(): Response
@@ -80,11 +81,12 @@ class DebtorController extends Controller
 
     public function store(DebtorRequest $request): RedirectResponse
     {
-        $data = $request->validated();
+        $data = $request->safe()->except(['new_images', 'existing_images']);
 
-        if ($request->hasFile('id_document_image')) {
-            $data['id_document_image'] = $request->file('id_document_image')->store('id-documents', 'local');
-        }
+        $data['id_document_images'] = array_map(
+            fn ($file) => $file->store('id-documents', 'local'),
+            $request->file('new_images', [])
+        );
 
         $debtor = Debtor::create($data);
 
@@ -95,19 +97,33 @@ class DebtorController extends Controller
 
     public function edit(Debtor $debtor): Response
     {
-        return Inertia::render('App/Debtors/Edit', ['debtor' => $debtor]);
+        return Inertia::render('App/Debtors/Edit', [
+            'debtor' => $debtor,
+            'documentCount' => count($debtor->id_document_images ?? []),
+        ]);
     }
 
     public function update(DebtorRequest $request, Debtor $debtor): RedirectResponse
     {
-        $data = $request->validated();
+        $data = $request->safe()->except(['new_images', 'keep_indexes']);
 
-        if ($request->hasFile('id_document_image')) {
-            if ($debtor->id_document_image) {
-                Storage::disk('local')->delete($debtor->id_document_image);
+        $keepIndexes = array_map('intval', $request->input('keep_indexes', []));
+        $oldPaths = $debtor->id_document_images ?? [];
+        $kept = [];
+        foreach ($oldPaths as $i => $path) {
+            if (in_array($i, $keepIndexes, true)) {
+                $kept[] = $path;
+            } else {
+                Storage::disk('local')->delete($path);
             }
-            $data['id_document_image'] = $request->file('id_document_image')->store('id-documents', 'local');
         }
+
+        $newPaths = array_map(
+            fn ($file) => $file->store('id-documents', 'local'),
+            $request->file('new_images', [])
+        );
+
+        $data['id_document_images'] = array_values([...$kept, ...$newPaths]);
 
         $debtor->update($data);
 

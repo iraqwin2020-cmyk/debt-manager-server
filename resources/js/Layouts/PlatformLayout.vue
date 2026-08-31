@@ -54,7 +54,7 @@ function logout() {
     <div class="min-h-screen" style="background: var(--surface-page)">
         <FlashToast />
         <header
-            class="fixed inset-x-0 top-0 z-30 flex h-16 items-center justify-between px-4 md:px-6"
+            class="glass-bar fixed inset-x-0 top-0 z-30 flex h-16 items-center justify-between px-4 md:px-6"
             style="background: var(--surface-card); border-bottom: 1px solid var(--border-subtle)"
         >
             <span class="font-extrabold text-brand-700">لوحة مدير المشروع</span>
@@ -76,10 +76,10 @@ function logout() {
                         @click="notifOpen = !notifOpen"
                     >
                         <Icon name="bell" />
-                        <span v-if="notifications.unreadCount" class="absolute -top-0.5 -left-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[0.6rem] font-bold text-white" style="background: #dc2626">{{ notifications.unreadCount }}</span>
+                        <span v-if="notifications.unreadCount" class="absolute -top-1 -left-1 text-[0.7rem] font-extrabold" style="color: #dc2626">{{ notifications.unreadCount }}</span>
                     </button>
                     <div v-if="notifOpen" class="fixed inset-0 z-10" @click="notifOpen = false"></div>
-                    <div v-if="notifOpen" class="absolute left-0 z-20 mt-2 w-72 overflow-hidden rounded-2xl border shadow-lg" style="background: var(--surface-card); border-color: var(--border-subtle)">
+                    <div v-if="notifOpen" class="absolute left-0 z-20 mt-2 w-72 overflow-hidden rounded-2xl border shadow-lg" style="background: var(--surface-solid); border-color: var(--border-subtle)">
                         <button
                             v-for="n in notifications.recent"
                             :key="n.id"
@@ -96,26 +96,26 @@ function logout() {
                         <Link :href="route('platform.notifications.index')" class="block p-2.5 text-center text-xs font-bold text-brand-700 hover:underline" @click="notifOpen = false">عرض كل الإشعارات</Link>
                     </div>
                 </div>
-                <Link :href="route('platform.settings.edit')" class="rounded-pill border border-transparent px-3 py-1.5 text-sm font-semibold transition-[border-color] hover:border-brand-400" style="color: var(--text-primary)">
+                <Link :href="route('platform.settings.account.edit')" class="rounded-pill border border-transparent px-3 py-1.5 text-sm font-semibold transition-[border-color] hover:border-brand-400" style="color: var(--text-primary)">
                     {{ user?.name }}
                 </Link>
             </div>
         </header>
 
         <aside
-            class="fixed inset-y-0 right-0 top-16 z-20 hidden w-48 flex-col gap-1 overflow-y-auto p-3 md:flex"
+            class="glass-bar fixed inset-y-0 right-0 top-16 z-20 hidden w-48 flex-col gap-1 overflow-y-auto p-3 md:flex"
             style="background: var(--surface-card); border-left: 1px solid var(--border-subtle)"
         >
             <Link
                 v-for="item in navItems"
                 :key="item.route"
                 :href="route(item.route)"
-                class="flex items-center justify-between rounded-pill border border-transparent px-4 py-2.5 text-sm font-semibold transition-[border-color]"
-                :class="route().current(item.route) ? 'bg-brand-600 text-white' : 'hover:border-brand-400'"
-                :style="route().current(item.route) ? '' : 'color: var(--text-primary)'"
+                class="flex items-center justify-between rounded-pill border border-transparent px-4 py-2.5 text-sm font-semibold shadow-sm transition-[border-color]"
+                :class="route().current(item.route) ? '' : 'hover:border-brand-400'"
+                :style="route().current(item.route) ? 'background: var(--color-ink); color: var(--color-paper)' : 'color: var(--text-primary)'"
             >
                 <span>{{ item.label }}</span>
-                <span v-if="item.badge" class="flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-bold text-white" style="background: #dc2626">{{ item.badge }}</span>
+                <span v-if="item.badge" class="text-xs font-extrabold" style="color: #dc2626">{{ item.badge }}</span>
             </Link>
             <button type="button" class="mt-4 rounded-pill border border-transparent px-4 py-2.5 text-start text-sm font-semibold text-red-600 transition-[border-color] hover:border-red-400" @click="logout">
                 تسجيل الخروج
@@ -127,7 +127,7 @@ function logout() {
         </main>
 
         <footer
-            class="fixed inset-x-0 bottom-0 z-20 flex items-center justify-around border-t p-2 md:hidden"
+            class="glass-bar fixed inset-x-0 bottom-0 z-20 flex items-center justify-around border-t p-2 md:hidden"
             style="background: var(--surface-card); border-color: var(--border-subtle)"
         >
             <button type="button" class="flex flex-col items-center gap-0.5 px-6 py-1 text-xs font-semibold" style="color: var(--text-primary)" @click="menuOpen = true">
@@ -142,20 +142,20 @@ function logout() {
 
         <!-- القائمة المنسدلة من الأسفل (هاتف) -->
         <div v-if="menuOpen" class="fixed inset-0 z-40 md:hidden">
-            <div class="absolute inset-0 bg-black/40" @click="menuOpen = false"></div>
-            <div class="absolute inset-x-0 bottom-0 rounded-t-2xl p-4 pb-6" style="background: var(--surface-card)">
+            <div class="absolute inset-0 bg-black/10" @click="menuOpen = false"></div>
+            <div class="glass-bar absolute inset-x-0 bottom-0 rounded-t-2xl p-4 pb-6" style="background: var(--surface-card)">
                 <div class="grid grid-cols-3 gap-2.5">
                     <Link
                         v-for="item in navItems"
                         :key="item.route"
                         :href="route(item.route)"
                         class="relative rounded-xl border px-2 py-4 text-center text-sm font-semibold transition-[border-color]"
-                        :class="route().current(item.route) ? 'bg-brand-600 text-white' : 'border-[var(--border-subtle)] hover:border-brand-400'"
-                        :style="route().current(item.route) ? '' : 'color: var(--text-primary)'"
+                        :class="route().current(item.route) ? 'border-transparent' : 'border-[var(--border-subtle)] hover:border-brand-400'"
+                        :style="route().current(item.route) ? 'background: var(--color-ink); color: var(--color-paper)' : 'color: var(--text-primary)'"
                         @click="menuOpen = false"
                     >
                         {{ item.label }}
-                        <span v-if="item.badge" class="absolute -top-1 -left-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-bold text-white" style="background: #dc2626">{{ item.badge }}</span>
+                        <span v-if="item.badge" class="absolute -top-1 -left-1 text-xs font-extrabold" style="color: #dc2626">{{ item.badge }}</span>
                     </Link>
                 </div>
                 <div class="mt-3 flex items-center justify-center">

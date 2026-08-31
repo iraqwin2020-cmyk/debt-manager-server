@@ -18,6 +18,7 @@ class RegisterTenantRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'digits:11', 'unique:tenants,phone', 'unique:users,phone'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'agree_privacy' => ['accepted'],
         ];
     }
 
@@ -28,6 +29,7 @@ class RegisterTenantRequest extends FormRequest
             'name' => 'الاسم',
             'phone' => 'رقم الهاتف',
             'password' => 'كلمة المرور',
+            'agree_privacy' => 'الموافقة على سياسة الخصوصية',
         ];
     }
 
@@ -39,6 +41,7 @@ class RegisterTenantRequest extends FormRequest
             'unique' => ':attribute مستخدم مسبقاً — إذا كان حسابك، سجّل الدخول مباشرة.',
             'min' => 'يجب ألا يقل :attribute عن :min أحرف.',
             'confirmed' => 'تأكيد :attribute غير مطابق.',
+            'accepted' => 'يجب الموافقة على سياسة الخصوصية للمتابعة.',
         ];
     }
 }

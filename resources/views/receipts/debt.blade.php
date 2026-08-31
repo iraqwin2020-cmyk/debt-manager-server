@@ -7,7 +7,7 @@
     <style>
         :root { color-scheme: light; }
         body { font-family: 'Cairo', sans-serif; padding: 24px; color: #1a1625; background: #fff; max-width: 720px; margin: 0 auto; }
-        .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #7c3aed; padding-bottom: 16px; margin-bottom: 24px; }
+        .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #e8600c; padding-bottom: 16px; margin-bottom: 24px; }
         .header img { height: 56px; width: 56px; border-radius: 50%; object-fit: cover; }
         .header h1 { font-size: 18px; margin: 0; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
@@ -17,7 +17,7 @@
         .signature-box { flex: 1; text-align: center; }
         .signature-line { border-top: 1px solid #333; margin-top: 60px; padding-top: 6px; }
         .toolbar { display: flex; gap: 8px; margin-bottom: 16px; }
-        .toolbar a, .toolbar button { font-family: inherit; font-size: 14px; font-weight: 700; padding: 8px 16px; border-radius: 999px; border: 2px solid #7c3aed; background: #fff; color: #7c3aed; cursor: pointer; text-decoration: none; }
+        .toolbar a, .toolbar button { font-family: inherit; font-size: 14px; font-weight: 700; padding: 8px 16px; border-radius: 999px; border: 2px solid #e8600c; background: #fff; color: #e8600c; cursor: pointer; text-decoration: none; }
         bdi { direction: ltr; unicode-bidi: isolate; display: inline-block; }
         bdi.date-rtl { direction: rtl; }
 
@@ -50,7 +50,7 @@
 
     <div class="section-title">بيانات الدين</div>
     <table>
-        <tr><th>المبلغ</th><td><bdi>{{ number_format($debt->amount) }}</bdi> {{ $debt->currency === 'USD' ? '$' : 'د.ع' }}</td></tr>
+        <tr><th>المبلغ</th><td><span style="display:inline-flex;align-items:center;gap:4px" dir="ltr"><span>{{ $debt->currency === 'USD' ? '$' : 'د.ع' }}</span><bdi>{{ number_format($debt->amount) }}</bdi></span></td></tr>
         <tr><th>التاريخ</th><td><bdi class="date-rtl" dir="rtl">{{ $debt->created_at->format('d m Y') }}</bdi></td></tr>
         @if($debt->payment_type === 'lump_sum')
             <tr><th>تاريخ الاستحقاق</th><td><bdi class="date-rtl" dir="rtl">{{ optional($debt->due_date)->format('d m Y') ?? '—' }}</bdi></td></tr>

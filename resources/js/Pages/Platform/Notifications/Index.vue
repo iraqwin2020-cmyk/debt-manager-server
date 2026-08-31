@@ -69,6 +69,6 @@ function markAllRead() {
             <p v-if="notifications.data.length === 0" class="p-6 text-center text-sm" style="color: var(--text-secondary)">لا توجد إشعارات بعد.</p>
         </div>
 
-        <Pagination :links="notifications.links" />
+        <Pagination :paginator="notifications" />
     </PlatformLayout>
 </template>

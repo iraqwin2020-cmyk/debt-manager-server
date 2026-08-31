@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\App;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\App\StoreMyDebtPaymentRequest;
 use App\Http\Requests\App\StoreMyDebtRequest;
 use App\Models\ActivityLog;
 use App\Models\Creditor;
@@ -39,6 +40,15 @@ class MyDebtController extends Controller
             'myDebts' => $myDebts,
             'filters' => (object) $request->only('q'),
             'iOwe' => $iOwe,
+        ]);
+    }
+
+    public function show(MyDebt $myDebt): Response
+    {
+        $myDebt->load(['creditor', 'installments', 'payments' => fn ($q) => $q->latest('paid_at')]);
+
+        return Inertia::render('App/MyDebts/Show', [
+            'myDebt' => $myDebt,
         ]);
     }
 
@@ -79,6 +89,25 @@ class MyDebtController extends Controller
         });
 
         return redirect()->route('app.my-debts.index')->with('success', 'تم تسجيل الدين بنجاح.');
+    }
+
+    public function pay(StoreMyDebtPaymentRequest $request, MyDebt $myDebt): RedirectResponse
+    {
+        $data = $request->validated();
+
+        DB::transaction(function () use ($data, $myDebt) {
+            $myDebt->payments()->create([
+                'creditor_id' => $myDebt->creditor_id,
+                'installment_id' => $data['installment_id'] ?? null,
+                'amount' => $data['amount'],
+                'paid_at' => $data['paid_at'],
+                'note' => $data['note'] ?? null,
+            ]);
+
+            ActivityLog::record('my_debt_payment_recorded', "تسجيل دفعة بمبلغ {$data['amount']} على دين لصالح {$myDebt->creditor->name}");
+        });
+
+        return back()->with('success', 'تم تسجيل الدفعة بنجاح.');
     }
 
     protected function resolveCreditor(array $payload): Creditor

@@ -16,7 +16,7 @@ class UpdateAccountRequest extends FormRequest
         return [
             'office_name' => ['required', 'string', 'max:255'],
             'name' => ['required', 'string', 'max:255'],
-            'logo' => ['nullable', 'image', 'max:2048'],
+            'logo' => ['nullable', 'image', 'max:5120'],
         ];
     }
 

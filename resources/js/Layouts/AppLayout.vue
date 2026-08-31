@@ -1,22 +1,35 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import FlashToast from '@/Components/FlashToast.vue';
 import Icon from '@/Components/Icon.vue';
 
+const { t } = useI18n();
 const page = usePage();
 const tenant = computed(() => page.props.auth?.tenant);
 const user = computed(() => page.props.auth?.user);
+const notifications = computed(() => page.props.tenantNotifications ?? { count: 0, recent: [] });
+const notifOpen = ref(false);
 
-const navItems = [
-    { label: 'الرئيسية', route: 'app.dashboard' },
-    { label: 'العملاء', route: 'app.debtors.index' },
-    { label: 'الكفلاء', route: 'app.guarantors.index' },
-    { label: 'الديون', route: 'app.debts.index' },
-    { label: 'ديوني', route: 'app.my-debts.index' },
-    { label: 'المفضلة', route: 'app.debtors.favorites' },
-    { label: 'الإعدادات', route: 'app.settings.edit' },
-];
+const navItems = computed(() => [
+    { label: t('nav.home'), route: 'app.dashboard', match: ['app.dashboard'] },
+    {
+        label: t('nav.debtors'),
+        route: 'app.debtors.index',
+        match: ['app.debtors.index', 'app.debtors.create', 'app.debtors.store', 'app.debtors.show', 'app.debtors.edit', 'app.debtors.update', 'app.debtors.destroy', 'app.debtors.id-document', 'app.debtors.debts', 'app.debtors.statement'],
+    },
+    { label: t('nav.guarantors'), route: 'app.guarantors.index', match: ['app.guarantors.*'] },
+    { label: t('nav.debts'), route: 'app.debts.index', match: ['app.debts.*'] },
+    { label: t('nav.myDebts'), route: 'app.my-debts.index', match: ['app.my-debts.*'] },
+    { label: t('nav.favorites'), route: 'app.debtors.favorites', match: ['app.debtors.favorites', 'app.debtors.toggle-favorite'] },
+    { label: t('nav.notifications'), route: 'app.notifications.index', match: ['app.notifications.*'], badge: notifications.value.count },
+    { label: t('nav.settings'), route: 'app.settings.edit', match: ['app.settings.*'] },
+]);
+
+function isActive(item) {
+    return item.match.some((pattern) => route().current(pattern));
+}
 
 const menuOpen = ref(false);
 
@@ -31,9 +44,7 @@ function toggleTheme() {
 }
 onMounted(() => applyTheme(theme.value));
 
-const dayName = computed(() =>
-    new Intl.DateTimeFormat('ar', { weekday: 'long' }).format(new Date())
-);
+const dayName = computed(() => t('weekdays.' + new Date().getDay()));
 const dateParts = computed(() => {
     const d = new Date();
     const pad = (n) => String(n).padStart(2, '0');
@@ -47,7 +58,7 @@ const dateParts = computed(() => {
 
         <!-- الهيدر -->
         <header
-            class="fixed inset-x-0 top-0 z-30 flex h-16 items-center justify-between px-4 md:px-6"
+            class="glass-bar fixed inset-x-0 top-0 z-30 flex h-16 items-center justify-between px-4 md:px-6"
             style="background: var(--surface-card); border-bottom: 1px solid var(--border-subtle)"
         >
             <div class="flex items-center gap-3">
@@ -55,46 +66,81 @@ const dateParts = computed(() => {
                 <div v-else class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white">
                     {{ tenant?.name?.charAt(0) ?? 'م' }}
                 </div>
+
+                <div class="flex flex-col-reverse items-start gap-0 text-xs font-medium sm:flex-row sm:items-center sm:gap-2 sm:text-sm" style="color: var(--text-secondary)">
+                    <span class="text-[0.65rem] leading-tight sm:text-sm">{{ dayName }}</span>
+                    <bdi class="bdi-date leading-tight" dir="rtl">{{ dateParts }}</bdi>
+                </div>
             </div>
 
-            <div class="flex flex-col-reverse items-center gap-0 text-xs font-medium sm:flex-row sm:gap-2 sm:text-sm" style="color: var(--text-secondary)">
-                <span class="text-[0.65rem] leading-tight sm:text-sm">{{ dayName }}</span>
-                <bdi class="bdi-date leading-tight" dir="rtl">{{ dateParts }}</bdi>
+            <div class="flex items-center gap-2">
+                <button
+                    type="button"
+                    class="hidden h-9 w-9 items-center justify-center rounded-full border border-transparent text-sm transition-[border-color] hover:border-brand-400 md:flex"
+                    :title="theme === 'dark' ? t('header.lightMode') : t('header.darkMode')"
+                    @click="toggleTheme"
+                >
+                    <Icon :name="theme === 'dark' ? 'sun' : 'moon'" />
+                </button>
+                <div class="relative">
+                    <button
+                        type="button"
+                        class="relative flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-sm transition-[border-color] hover:border-brand-400"
+                        style="color: var(--text-primary)"
+                        @click="notifOpen = !notifOpen"
+                    >
+                        <Icon name="bell" />
+                        <span v-if="notifications.count" class="absolute -top-1 -left-1 text-[0.7rem] font-extrabold" style="color: #dc2626">{{ notifications.count }}</span>
+                    </button>
+                    <div v-if="notifOpen" class="fixed inset-0 z-10" @click="notifOpen = false"></div>
+                    <div v-if="notifOpen" class="absolute left-0 z-20 mt-2 w-72 overflow-hidden rounded-2xl border shadow-lg" style="background: var(--surface-solid); border-color: var(--border-subtle)">
+                        <button
+                            v-for="n in notifications.recent"
+                            :key="n.id"
+                            type="button"
+                            class="block w-full border-b p-3 text-start text-xs transition-[background-color]"
+                            style="border-color: var(--border-subtle)"
+                            @click="notifOpen = false; n.link && router.visit(n.link)"
+                        >
+                            <span class="font-bold">{{ n.title }}</span>
+                            <span class="mt-0.5 block" style="color: var(--text-secondary)">{{ n.meta }}</span>
+                        </button>
+                        <p v-if="notifications.recent.length === 0" class="p-4 text-center text-xs" style="color: var(--text-secondary)">{{ t('header.noNotifications') }}</p>
+                        <Link :href="route('app.notifications.index')" class="block p-2.5 text-center text-xs font-bold text-brand-700 hover:underline" @click="notifOpen = false">{{ t('header.viewAllNotifications') }}</Link>
+                    </div>
+                </div>
+                <Link :href="route('app.settings.account.edit')" class="flex items-center gap-2 rounded-pill border border-transparent px-3 py-1.5 transition-[border-color] hover:border-brand-400" style="color: var(--text-primary)">
+                    <span class="text-sm font-semibold">{{ user?.name }}</span>
+                    <span class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold text-white" style="background: linear-gradient(135deg, var(--color-brand-300), var(--color-brand-500)); box-shadow: 0 6px 16px -4px rgb(232 96 12 / 0.4)">
+                        {{ user?.name?.charAt(0) }}
+                    </span>
+                </Link>
             </div>
-
-            <Link :href="route('app.settings.edit')" class="flex items-center gap-2 rounded-pill border border-transparent px-3 py-1.5 transition-[border-color] hover:border-brand-400" style="color: var(--text-primary)">
-                <span class="text-sm font-semibold">{{ user?.name }}</span>
-                <span class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-brand-700 text-sm font-bold">
-                    {{ user?.name?.charAt(0) }}
-                </span>
-            </Link>
         </header>
 
         <!-- القائمة الجانبية (حاسوب) -->
         <aside
-            class="fixed inset-y-0 right-0 top-16 z-20 hidden w-48 flex-col gap-1 overflow-y-auto p-3 md:flex"
-            style="background: var(--surface-card); border-left: 1px solid var(--border-subtle)"
+            class="glass-bar fixed inset-y-0 start-0 top-16 z-20 hidden w-48 flex-col gap-1 overflow-y-auto p-3 md:flex"
+            style="background: var(--surface-card); border-inline-end: 1px solid var(--border-subtle)"
         >
-            <button
-                type="button"
-                class="mb-3 mr-auto flex h-7 w-7 items-center justify-center rounded-full border border-transparent text-sm transition-[border-color] hover:border-brand-400"
-                :title="theme === 'dark' ? 'الوضع الفاتح' : 'الوضع الداكن'"
-                @click="toggleTheme"
-            >
-                <Icon :name="theme === 'dark' ? 'sun' : 'moon'" />
-            </button>
+            <div class="mb-6 mt-4 flex flex-col items-center gap-2">
+                <img v-if="tenant?.logo" :src="tenant.logo" alt="" class="h-16 w-16 rounded-full object-cover shadow-sm" />
+                <div v-else class="flex h-16 w-16 items-center justify-center rounded-full text-2xl font-bold text-white shadow-sm" style="background: linear-gradient(135deg, var(--color-brand-300), var(--color-brand-600))">
+                    {{ tenant?.name?.charAt(0) ?? 'م' }}
+                </div>
+                <span class="max-w-full truncate text-sm font-bold" style="color: var(--text-primary)">{{ tenant?.name }}</span>
+            </div>
 
             <Link
                 v-for="item in navItems"
                 :key="item.route"
                 :href="route(item.route)"
-                class="rounded-pill border border-transparent px-4 py-2.5 text-sm font-semibold transition-[border-color]"
-                :class="route().current(item.route)
-                    ? 'bg-brand-600 text-white'
-                    : 'hover:border-brand-400'"
-                :style="route().current(item.route) ? '' : 'color: var(--text-primary)'"
+                class="flex items-center justify-between rounded-pill border border-transparent px-4 py-2.5 text-sm font-semibold shadow-sm transition-[border-color]"
+                :class="isActive(item) ? '' : 'hover:border-brand-400'"
+                :style="isActive(item) ? 'background: var(--color-ink); color: var(--color-paper)' : 'color: var(--text-primary)'"
             >
-                {{ item.label }}
+                <span>{{ item.label }}</span>
+                <span v-if="item.badge" class="text-xs font-extrabold" style="color: #dc2626">{{ item.badge }}</span>
             </Link>
         </aside>
 
@@ -105,44 +151,45 @@ const dateParts = computed(() => {
 
         <!-- فوتر الهاتف -->
         <nav
-            class="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 md:hidden"
+            class="glass-bar fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 md:hidden"
             style="background: var(--surface-card); border-top: 1px solid var(--border-subtle)"
         >
             <Link :href="route('app.dashboard')" class="flex flex-col items-center gap-1 py-2.5 text-xs font-semibold">
-                <span class="text-lg"><Icon name="home" /></span> الرئيسية
+                <span class="text-lg"><Icon name="home" /></span> {{ t('nav.home') }}
             </Link>
             <button type="button" class="flex flex-col items-center gap-1 py-2.5 text-xs font-semibold" @click="menuOpen = true">
-                <span class="text-lg"><Icon name="menu" /></span> القائمة
+                <span class="text-lg"><Icon name="menu" /></span> {{ t('nav.menu') }}
             </button>
             <Link :href="route('app.debts.create')" class="flex flex-col items-center gap-1 py-2.5 text-xs font-semibold">
-                <span class="text-lg"><Icon name="plus" /></span> دين جديد
+                <span class="text-lg"><Icon name="plus" /></span> {{ t('nav.newDebt') }}
             </Link>
             <Link :href="route('app.payments.create')" class="flex flex-col items-center gap-1 py-2.5 text-xs font-semibold">
-                <span class="text-lg"><Icon name="cash" /></span> تسديد
+                <span class="text-lg"><Icon name="cash" /></span> {{ t('nav.pay') }}
             </Link>
         </nav>
 
         <!-- القائمة المنسدلة من الأسفل (هاتف) -->
         <div v-if="menuOpen" class="fixed inset-0 z-40 md:hidden">
-            <div class="absolute inset-0 bg-black/40" @click="menuOpen = false"></div>
-            <div class="absolute inset-x-0 bottom-0 rounded-t-2xl p-4 pb-6" style="background: var(--surface-card)">
+            <div class="absolute inset-0 bg-black/10" @click="menuOpen = false"></div>
+            <div class="glass-bar absolute inset-x-0 bottom-0 rounded-t-2xl p-4 pb-6" style="background: var(--surface-card)">
                 <div class="grid grid-cols-3 gap-2.5">
                     <Link
                         v-for="item in navItems"
                         :key="item.route"
                         :href="route(item.route)"
-                        class="rounded-xl border px-2 py-4 text-center text-sm font-semibold transition-[border-color]"
-                        :class="route().current(item.route) ? 'bg-brand-600 text-white' : 'border-[var(--border-subtle)] hover:border-brand-400'"
-                        :style="route().current(item.route) ? '' : 'color: var(--text-primary)'"
+                        class="relative rounded-xl border px-2 py-4 text-center text-sm font-semibold transition-[border-color]"
+                        :class="isActive(item) ? 'border-transparent' : 'border-[var(--border-subtle)] hover:border-brand-400'"
+                        :style="isActive(item) ? 'background: var(--color-ink); color: var(--color-paper)' : 'color: var(--text-primary)'"
                         @click="menuOpen = false"
                     >
                         {{ item.label }}
+                        <span v-if="item.badge" class="absolute -top-1 -left-1 text-xs font-extrabold" style="color: #dc2626">{{ item.badge }}</span>
                     </Link>
                 </div>
                 <button
                     type="button"
                     class="mt-3 mr-auto flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-sm transition-[border-color] hover:border-brand-400"
-                    :title="theme === 'dark' ? 'الوضع الفاتح' : 'الوضع الداكن'"
+                    :title="theme === 'dark' ? t('header.lightMode') : t('header.darkMode')"
                     @click="toggleTheme"
                 >
                     <Icon :name="theme === 'dark' ? 'sun' : 'moon'" />

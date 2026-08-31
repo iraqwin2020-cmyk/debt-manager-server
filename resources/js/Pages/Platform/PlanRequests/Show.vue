@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { router, Link } from '@inertiajs/vue3';
 import PlatformLayout from '@/Layouts/PlatformLayout.vue';
 import Icon from '@/Components/Icon.vue';
+import CurrencyAmount from '@/Components/CurrencyAmount.vue';
 
 const props = defineProps({
     planRequest: { type: Object, required: true },
@@ -51,7 +52,7 @@ function goBack() {
             <div class="space-y-3 rounded-card p-6" style="background: var(--surface-card); box-shadow: var(--shadow-card)">
                 <h2 class="mb-2 font-bold">الباقة المطلوبة</h2>
                 <p><span class="font-semibold">الاسم:</span> {{ planRequest.plan?.name }}</p>
-                <p><span class="font-semibold">السعر:</span> <bdi class="bdi-ltr">{{ planRequest.plan?.price }}</bdi> د.ع</p>
+                <p><span class="font-semibold">السعر:</span> <CurrencyAmount currency="IQD" :amount="planRequest.plan?.price ?? 0" /></p>
                 <p><span class="font-semibold">المدة:</span> {{ planRequest.plan?.duration_days }} يوم</p>
                 <p><span class="font-semibold">حد العملاء:</span> {{ planRequest.plan?.max_debtors }}</p>
                 <p><span class="font-semibold">حد الأجهزة:</span> {{ planRequest.plan?.max_devices }}</p>

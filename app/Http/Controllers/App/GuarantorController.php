@@ -40,16 +40,17 @@ class GuarantorController extends Controller
 
         return Inertia::render('App/Guarantors/Show', [
             'guarantor' => $guarantor,
-            'hasIdDocument' => (bool) $guarantor->id_document_image,
+            'documentCount' => count($guarantor->id_document_images ?? []),
             'debts' => $debts,
         ]);
     }
 
-    public function showDocument(Guarantor $guarantor)
+    public function showDocument(Guarantor $guarantor, int $index)
     {
-        abort_unless($guarantor->id_document_image, 404);
+        $paths = $guarantor->id_document_images ?? [];
+        abort_unless(array_key_exists($index, $paths), 404);
 
-        return Storage::disk('local')->response($guarantor->id_document_image);
+        return Storage::disk('local')->response($paths[$index]);
     }
 
     public function create(): Response
@@ -59,11 +60,12 @@ class GuarantorController extends Controller
 
     public function store(GuarantorRequest $request): RedirectResponse
     {
-        $data = $request->validated();
+        $data = $request->safe()->except(['new_images', 'existing_images']);
 
-        if ($request->hasFile('id_document_image')) {
-            $data['id_document_image'] = $request->file('id_document_image')->store('id-documents', 'local');
-        }
+        $data['id_document_images'] = array_map(
+            fn ($file) => $file->store('id-documents', 'local'),
+            $request->file('new_images', [])
+        );
 
         $guarantor = Guarantor::create($data);
 
@@ -74,19 +76,33 @@ class GuarantorController extends Controller
 
     public function edit(Guarantor $guarantor): Response
     {
-        return Inertia::render('App/Guarantors/Edit', ['guarantor' => $guarantor]);
+        return Inertia::render('App/Guarantors/Edit', [
+            'guarantor' => $guarantor,
+            'documentCount' => count($guarantor->id_document_images ?? []),
+        ]);
     }
 
     public function update(GuarantorRequest $request, Guarantor $guarantor): RedirectResponse
     {
-        $data = $request->validated();
+        $data = $request->safe()->except(['new_images', 'keep_indexes']);
 
-        if ($request->hasFile('id_document_image')) {
-            if ($guarantor->id_document_image) {
-                Storage::disk('local')->delete($guarantor->id_document_image);
+        $keepIndexes = array_map('intval', $request->input('keep_indexes', []));
+        $oldPaths = $guarantor->id_document_images ?? [];
+        $kept = [];
+        foreach ($oldPaths as $i => $path) {
+            if (in_array($i, $keepIndexes, true)) {
+                $kept[] = $path;
+            } else {
+                Storage::disk('local')->delete($path);
             }
-            $data['id_document_image'] = $request->file('id_document_image')->store('id-documents', 'local');
         }
+
+        $newPaths = array_map(
+            fn ($file) => $file->store('id-documents', 'local'),
+            $request->file('new_images', [])
+        );
+
+        $data['id_document_images'] = array_values([...$kept, ...$newPaths]);
 
         $guarantor->update($data);
 

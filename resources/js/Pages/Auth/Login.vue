@@ -1,5 +1,9 @@
 <script setup>
 import { useForm, Link } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
+import LanguageSwitcher from '@/Components/LanguageSwitcher.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({ rememberedPhone: { type: String, default: null } });
 
@@ -21,10 +25,12 @@ function submit() {
             style="background: var(--surface-card); box-shadow: var(--shadow-card)"
             @submit.prevent="submit"
         >
-            <h1 class="text-center text-lg font-extrabold text-brand-700 sm:text-2xl">تسجيل الدخول</h1>
+            <LanguageSwitcher />
+
+            <h1 class="text-center text-lg font-extrabold text-brand-700 sm:text-2xl">{{ t('auth.login.title') }}</h1>
 
             <div>
-                <label class="mb-1 block text-sm font-semibold">رقم الهاتف</label>
+                <label class="mb-1 block text-sm font-semibold">{{ t('common.phone') }}</label>
                 <input
                     v-model="form.phone"
                     type="text"
@@ -39,7 +45,7 @@ function submit() {
             </div>
 
             <div>
-                <label class="mb-1 block text-sm font-semibold">كلمة المرور</label>
+                <label class="mb-1 block text-sm font-semibold">{{ t('auth.password') }}</label>
                 <input
                     v-model="form.password"
                     type="password"
@@ -52,7 +58,7 @@ function submit() {
 
             <label class="flex items-center gap-2 text-sm font-semibold">
                 <input v-model="form.remember" type="checkbox" class="h-4 w-4 rounded accent-brand-600" />
-                تذكرني
+                {{ t('auth.login.rememberMe') }}
             </label>
 
             <button
@@ -60,12 +66,12 @@ function submit() {
                 :disabled="form.processing"
                 class="w-full rounded-pill bg-brand-600 py-3 font-bold text-white transition hover:bg-brand-700 disabled:opacity-50"
             >
-                دخول
+                {{ t('auth.login.submit') }}
             </button>
 
             <p class="text-center text-sm" style="color: var(--text-secondary)">
-                ليس لديك حساب؟
-                <Link :href="route('register')" class="font-semibold text-brand-700 hover:underline">سجّل الآن</Link>
+                {{ t('auth.login.noAccount') }}
+                <Link :href="route('register')" class="font-semibold text-brand-700 hover:underline">{{ t('auth.login.registerNow') }}</Link>
             </p>
         </form>
     </div>

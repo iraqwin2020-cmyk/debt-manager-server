@@ -93,6 +93,6 @@ const statusLabels = {
             </table>
         </div>
 
-        <Pagination :links="tenants.links" />
+        <Pagination :paginator="tenants" />
     </PlatformLayout>
 </template>

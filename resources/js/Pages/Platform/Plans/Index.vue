@@ -40,25 +40,25 @@ function confirmDelete() {
         <form class="mb-6 flex flex-wrap items-end gap-3 rounded-card p-4" style="background: var(--surface-card); box-shadow: var(--shadow-card)" @submit.prevent="submitCreate">
             <div>
                 <label class="mb-1 block text-xs font-semibold">الاسم</label>
-                <input v-model="createForm.name" type="text" class="rounded-lg border px-3 py-1.5 text-sm" style="border-color: var(--border-subtle)" />
+                <input v-model="createForm.name" type="text" class="rounded-lg border px-3 py-2.5 text-sm" style="border-color: var(--border-subtle)" />
             </div>
             <div>
                 <label class="mb-1 block text-xs font-semibold">السعر</label>
-                <input :value="createForm.price" type="text" inputmode="numeric" dir="ltr" class="w-24 rounded-lg border px-3 py-1.5 text-end text-sm" style="border-color: var(--border-subtle)" @input="createForm.price = $event.target.value.replace(/[^0-9]/g, '').slice(0, 9)" />
+                <input :value="createForm.price" type="text" inputmode="numeric" dir="ltr" class="w-24 rounded-lg border px-3 py-2.5 text-end text-sm" style="border-color: var(--border-subtle)" @input="createForm.price = $event.target.value.replace(/[^0-9]/g, '').slice(0, 9)" />
             </div>
             <div>
                 <label class="mb-1 block text-xs font-semibold">المدة (أيام)</label>
-                <input :value="createForm.duration_days" type="text" inputmode="numeric" dir="ltr" class="w-24 rounded-lg border px-3 py-1.5 text-end text-sm" style="border-color: var(--border-subtle)" @input="createForm.duration_days = $event.target.value.replace(/[^0-9]/g, '').slice(0, 4)" />
+                <input :value="createForm.duration_days" type="text" inputmode="numeric" dir="ltr" class="w-24 rounded-lg border px-3 py-2.5 text-end text-sm" style="border-color: var(--border-subtle)" @input="createForm.duration_days = $event.target.value.replace(/[^0-9]/g, '').slice(0, 4)" />
             </div>
             <div>
                 <label class="mb-1 block text-xs font-semibold">حد العملاء</label>
-                <input :value="createForm.max_debtors" type="text" inputmode="numeric" dir="ltr" class="w-24 rounded-lg border px-3 py-1.5 text-end text-sm" style="border-color: var(--border-subtle)" @input="createForm.max_debtors = $event.target.value.replace(/[^0-9]/g, '').slice(0, 5)" />
+                <input :value="createForm.max_debtors" type="text" inputmode="numeric" dir="ltr" class="w-24 rounded-lg border px-3 py-2.5 text-end text-sm" style="border-color: var(--border-subtle)" @input="createForm.max_debtors = $event.target.value.replace(/[^0-9]/g, '').slice(0, 5)" />
             </div>
             <div>
                 <label class="mb-1 block text-xs font-semibold">حد الأجهزة</label>
-                <input :value="createForm.max_devices" type="text" inputmode="numeric" dir="ltr" class="w-24 rounded-lg border px-3 py-1.5 text-end text-sm" style="border-color: var(--border-subtle)" @input="createForm.max_devices = $event.target.value.replace(/[^0-9]/g, '').slice(0, 2)" />
+                <input :value="createForm.max_devices" type="text" inputmode="numeric" dir="ltr" class="w-24 rounded-lg border px-3 py-2.5 text-end text-sm" style="border-color: var(--border-subtle)" @input="createForm.max_devices = $event.target.value.replace(/[^0-9]/g, '').slice(0, 2)" />
             </div>
-            <button type="submit" class="rounded-pill bg-brand-600 px-5 py-2 text-sm font-bold text-white">+ إضافة باقة</button>
+            <button type="submit" class="rounded-pill bg-brand-600 px-5 py-2 text-sm font-bold text-white">إضافة باقة</button>
         </form>
 
         <div class="overflow-x-auto rounded-card" style="background: var(--surface-card); box-shadow: var(--shadow-card)">

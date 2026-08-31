@@ -2,54 +2,51 @@
 import AppLayout from '@/Layouts/AppLayout.vue';
 import StatCard from '@/Components/StatCard.vue';
 import Icon from '@/Components/Icon.vue';
+import CurrencyAmount from '@/Components/CurrencyAmount.vue';
 import { Link } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 defineProps({ stats: { type: Object, required: true } });
 
-function fmt(obj) {
-    if (!obj || Object.keys(obj).length === 0) return '0';
-    return Object.entries(obj)
-        .map(([cur, val]) => `${new Intl.NumberFormat('en-US').format(val)} ${cur === 'USD' ? '$' : 'د.ع'}`)
-        .join(' + ');
-}
-
 const currencyOrder = ['IQD', 'USD'];
 function amounts(obj) {
-    if (!obj || Object.keys(obj).length === 0) return [{ cur: 'IQD', text: '0 د.ع' }];
+    if (!obj || Object.keys(obj).length === 0) return [{ cur: 'IQD', val: 0 }];
     return Object.entries(obj)
         .sort(([a], [b]) => currencyOrder.indexOf(a) - currencyOrder.indexOf(b))
-        .map(([cur, val]) => ({ cur, text: `${new Intl.NumberFormat('en-US').format(val)} ${cur === 'USD' ? '$' : 'د.ع'}` }));
+        .map(([cur, val]) => ({ cur, val }));
 }
 </script>
 
 <template>
     <AppLayout>
         <div class="mb-6">
-            <h1 class="text-lg font-extrabold sm:text-2xl">الصفحة الرئيسية</h1>
-            <p class="mt-1 text-sm" style="color: var(--text-secondary)">نظرة سريعة على حسابك</p>
+            <h1 class="text-lg font-extrabold sm:text-2xl">{{ t('dashboard.title') }}</h1>
+            <p class="mt-1 text-sm" style="color: var(--text-secondary)">{{ t('dashboard.subtitle') }}</p>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 sm:gap-4">
-            <StatCard label="الديون" :value="fmt(stats.owedToMe)">
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+            <StatCard :label="t('dashboard.debts')" :value="0">
                 <template #icon><Icon name="wallet" /></template>
                 <div v-for="a in amounts(stats.owedToMe)" :key="a.cur">
-                    <bdi class="bdi-ltr">{{ a.text }}</bdi>
+                    <CurrencyAmount :currency="a.cur" :amount="a.val" />
                 </div>
             </StatCard>
-            <StatCard :href="route('app.debtors.index')" label="عدد العملاء" :value="stats.debtorsCount">
+            <StatCard :href="route('app.debtors.index')" :label="t('dashboard.customersCount')" :value="stats.debtorsCount">
                 <template #icon><Icon name="users" /></template>
             </StatCard>
-            <StatCard :href="route('app.debts.index', { status: 'overdue' })" label="المتأخرات" :value="stats.overdueCount">
+            <StatCard :href="route('app.debts.index', { status: 'overdue' })" :label="t('dashboard.overdue')" :value="stats.overdueCount">
                 <template #icon><Icon name="warning" /></template>
             </StatCard>
-            <StatCard :href="route('app.debts.index')" label="استحقاقات اليوم" :value="stats.dueTodayCount">
+            <StatCard :href="route('app.debts.index')" :label="t('dashboard.dueToday')" :value="stats.dueTodayCount">
                 <template #icon><Icon name="calendar" /></template>
             </StatCard>
         </div>
 
-        <div class="mt-8 hidden flex-wrap gap-3 md:flex">
-            <Link :href="route('app.debts.create')" class="rounded-pill bg-brand-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">+ دين جديد</Link>
-            <Link :href="route('app.payments.create')" class="rounded-pill border-2 border-brand-600 px-6 py-2.5 text-sm font-bold text-brand-700 transition hover:-translate-y-0.5 hover:bg-brand-50">تسديد دفعة</Link>
+        <div class="mt-8 hidden flex-wrap gap-3 md:flex md:justify-end">
+            <Link :href="route('app.debts.create')" class="rounded-pill bg-brand-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">{{ t('dashboard.newDebt') }}</Link>
+            <Link :href="route('app.payments.create')" class="rounded-pill border-2 border-brand-600 px-6 py-2.5 text-sm font-bold text-brand-700 transition hover:-translate-y-0.5 hover:bg-brand-50">{{ t('dashboard.payDebt') }}</Link>
         </div>
     </AppLayout>
 </template>

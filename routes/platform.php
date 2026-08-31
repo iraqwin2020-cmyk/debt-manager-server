@@ -43,9 +43,11 @@ Route::middleware(['auth:platform', 'platform_admin'])->prefix('platform')->name
     Route::patch('notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
 
     Route::get('settings', [PlatformSettingsController::class, 'edit'])->name('settings.edit');
+    Route::get('settings/account', [PlatformSettingsController::class, 'accountEdit'])->name('settings.account.edit');
     Route::patch('settings/account', [PlatformSettingsController::class, 'updateAccount'])->name('settings.account');
     Route::patch('settings/password', [PlatformSettingsController::class, 'updatePassword'])->name('settings.password');
     Route::patch('settings/general', [PlatformSettingsController::class, 'updateGeneral'])->name('settings.general');
     Route::patch('settings/theme', [PlatformSettingsController::class, 'updateTheme'])->name('settings.theme');
     Route::patch('settings/about', [PlatformSettingsController::class, 'updateAbout'])->name('settings.about');
+    Route::patch('settings/privacy-policy', [PlatformSettingsController::class, 'updatePrivacyPolicy'])->name('settings.privacy-policy');
 });

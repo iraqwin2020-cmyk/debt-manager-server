@@ -1,37 +1,81 @@
 <script setup>
-import { useForm, Link } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import { useForm } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import Icon from '@/Components/Icon.vue';
 
-const props = defineProps({ debtor: { type: Object, required: true } });
+const { t } = useI18n();
+
+const props = defineProps({
+    debtor: { type: Object, required: true },
+    documentCount: { type: Number, default: 0 },
+});
+
+const existingImages = ref(
+    Array.from({ length: props.documentCount }, (_, i) => ({
+        index: i,
+        url: route('app.debtors.id-document', [props.debtor.id, i]),
+    }))
+);
+const newPreviews = ref([]);
+const fileInput = ref(null);
 
 const form = useForm({
     name: props.debtor.name,
     phone: props.debtor.phone,
     address: props.debtor.address ?? '',
     note: props.debtor.note ?? '',
-    id_document_image: null,
+    new_images: [],
+    keep_indexes: existingImages.value.map((img) => img.index),
     _method: 'put',
 });
 
+function removeExisting(index) {
+    existingImages.value = existingImages.value.filter((img) => img.index !== index);
+    form.keep_indexes = existingImages.value.map((img) => img.index);
+}
+
+function totalCount() {
+    return existingImages.value.length + form.new_images.length;
+}
+
+function addFiles(event) {
+    const files = [...event.target.files].slice(0, 5 - totalCount());
+    form.new_images.push(...files);
+    newPreviews.value.push(...files.map((f) => URL.createObjectURL(f)));
+    event.target.value = '';
+}
+
+function removeNew(i) {
+    URL.revokeObjectURL(newPreviews.value[i]);
+    form.new_images.splice(i, 1);
+    newPreviews.value.splice(i, 1);
+}
+
 function submit() {
     form.post(route('app.debtors.update', props.debtor.id));
+}
+
+function goBack() {
+    window.history.back();
 }
 </script>
 
 <template>
     <AppLayout>
         <div class="mx-auto max-w-lg">
-            <h1 class="mb-6 text-lg font-extrabold sm:text-2xl">تعديل بيانات العميل</h1>
+            <h1 class="mb-6 text-lg font-extrabold sm:text-2xl">{{ t('debtors.editTitle') }}</h1>
 
             <form class="space-y-4 rounded-card p-6" style="background: var(--surface-card); box-shadow: var(--shadow-card)" @submit.prevent="submit">
                 <div>
-                    <label class="mb-1 block text-sm font-semibold">الاسم</label>
+                    <label class="mb-1 block text-sm font-semibold">{{ t('common.name') }}</label>
                     <input v-model="form.name" type="text" class="w-full rounded-xl border px-4 py-2.5" style="border-color: var(--border-subtle)" />
                     <p v-if="form.errors.name" class="mt-1 text-sm text-red-600">{{ form.errors.name }}</p>
                 </div>
 
                 <div>
-                    <label class="mb-1 block text-sm font-semibold">رقم الهاتف</label>
+                    <label class="mb-1 block text-sm font-semibold">{{ t('common.phone') }}</label>
                     <input
                         v-model="form.phone"
                         type="text"
@@ -45,24 +89,42 @@ function submit() {
                 </div>
 
                 <div>
-                    <label class="mb-1 block text-sm font-semibold">العنوان</label>
+                    <label class="mb-1 block text-sm font-semibold">{{ t('common.address') }}</label>
                     <input v-model="form.address" type="text" class="w-full rounded-xl border px-4 py-2.5" style="border-color: var(--border-subtle)" />
                 </div>
 
                 <div>
-                    <label class="mb-1 block text-sm font-semibold">صورة المستمسك</label>
-                    <img v-if="debtor.id_document_image" src="#" class="mb-2 hidden h-20 rounded-lg" />
-                    <input type="file" accept="image/*" class="w-full text-sm" @input="form.id_document_image = $event.target.files[0]" />
+                    <label class="mb-1 block text-sm font-semibold">{{ t('debtors.docsUpTo5') }}</label>
+                    <div v-if="existingImages.length || newPreviews.length" class="mb-2 flex flex-wrap gap-2">
+                        <div v-for="img in existingImages" :key="'e' + img.index" class="relative">
+                            <img :src="img.url" alt="" class="h-16 w-16 rounded-lg object-cover" />
+                            <button type="button" class="absolute -top-1.5 -left-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-white" @click="removeExisting(img.index)">
+                                <Icon name="close" />
+                            </button>
+                        </div>
+                        <div v-for="(src, i) in newPreviews" :key="'n' + i" class="relative">
+                            <img :src="src" alt="" class="h-16 w-16 rounded-lg object-cover" />
+                            <button type="button" class="absolute -top-1.5 -left-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-white" @click="removeNew(i)">
+                                <Icon name="close" />
+                            </button>
+                        </div>
+                    </div>
+                    <div v-if="totalCount() < 5" class="flex items-center gap-3">
+                        <button type="button" class="rounded-pill border-2 border-brand-600 px-4 py-1.5 text-sm font-bold text-brand-700" @click="fileInput.click()">{{ t('common.chooseImages') }}</button>
+                        <span class="text-xs" style="color: var(--text-secondary)">{{ newPreviews.length ? t('common.newImagesChosen', { count: newPreviews.length }) : t('common.noFileChosen') }}</span>
+                        <input ref="fileInput" type="file" accept="image/*" multiple class="hidden" @change="addFiles" />
+                    </div>
+                    <p v-if="form.errors.new_images" class="mt-1 text-sm text-red-600">{{ form.errors.new_images }}</p>
                 </div>
 
                 <div>
-                    <label class="mb-1 block text-sm font-semibold">ملاحظات</label>
+                    <label class="mb-1 block text-sm font-semibold">{{ t('common.notes') }}</label>
                     <textarea v-model="form.note" rows="3" class="w-full rounded-xl border px-4 py-2.5" style="border-color: var(--border-subtle)"></textarea>
                 </div>
 
                 <div class="flex gap-3 pt-2">
-                    <button type="submit" :disabled="form.processing" class="rounded-pill bg-brand-600 px-6 py-2.5 font-bold text-white disabled:opacity-50">حفظ التعديلات</button>
-                    <Link :href="route('app.debtors.index')" class="rounded-pill border-2 px-6 py-2.5 font-bold" style="border-color: var(--border-subtle)">رجوع</Link>
+                    <button type="submit" :disabled="form.processing" class="rounded-pill bg-brand-600 px-6 py-2.5 font-bold text-white disabled:opacity-50">{{ t('debtors.saveEdits') }}</button>
+                    <button type="button" class="rounded-pill border-2 px-6 py-2.5 font-bold" style="border-color: var(--border-subtle)" @click="goBack">{{ t('common.back') }}</button>
                 </div>
             </form>
         </div>

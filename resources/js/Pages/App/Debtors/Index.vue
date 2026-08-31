@@ -1,11 +1,15 @@
 <script setup>
 import { ref } from 'vue';
 import { router, Link } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
 import PhoneLink from '@/Components/PhoneLink.vue';
 import SelectMenu from '@/Components/SelectMenu.vue';
 import Icon from '@/Components/Icon.vue';
+import CurrencyAmount from '@/Components/CurrencyAmount.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
     debtors: { type: Object, required: true },
@@ -23,45 +27,45 @@ function toggleFavorite(debtor) {
     router.patch(route('app.debtors.toggle-favorite', debtor.id), {}, { preserveScroll: true });
 }
 
-function fmtRemaining(remaining) {
-    if (!remaining || Object.keys(remaining).length === 0) return '—';
-    return Object.entries(remaining)
-        .map(([cur, val]) => `${new Intl.NumberFormat('en-US').format(val)} ${cur === 'USD' ? '$' : 'د.ع'}`)
-        .join(' + ');
+function remainingEntries(remaining) {
+    if (!remaining || Object.keys(remaining).length === 0) return [];
+    return Object.entries(remaining).map(([cur, val]) => ({ cur, val }));
 }
 </script>
 
 <template>
     <AppLayout>
         <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-            <h1 class="text-lg font-extrabold sm:text-2xl">العملاء</h1>
-            <Link :href="route('app.debtors.create')" class="rounded-pill bg-brand-600 px-3 py-1.5 text-xs font-bold text-white sm:px-5 sm:py-2 sm:text-sm">+ إضافة</Link>
+            <h1 class="text-lg font-extrabold sm:text-2xl">{{ t('debtors.title') }}</h1>
+            <Link :href="route('app.debtors.create')" class="rounded-pill bg-brand-600 px-5 py-2 text-sm font-bold text-white">{{ t('common.add') }}</Link>
         </div>
 
         <div class="mb-4 flex flex-wrap gap-3">
             <input
                 v-model="q"
                 type="text"
-                placeholder="بحث بالاسم أو الهاتف..."
+                :placeholder="t('debtors.searchPlaceholder')"
                 class="min-w-[220px] flex-1 rounded-pill border px-4 py-2 text-sm"
                 style="border-color: var(--border-subtle)"
                 @keyup.enter="search"
             />
             <SelectMenu
                 v-model="filterValue"
-                :options="[{ value: '', label: 'الكل' }, { value: 'favorites', label: 'المفضلة فقط' }]"
+                :options="[{ value: '', label: t('debtors.filterAll') }, { value: 'favorites', label: t('debtors.filterFavoritesOnly') }]"
                 @change="search"
             />
-            <button type="button" class="rounded-pill bg-brand-600 px-3 py-1.5 text-xs font-bold text-white sm:px-5 sm:py-2 sm:text-sm" @click="search">بحث</button>
+            <button type="button" class="rounded-pill bg-brand-600 px-5 py-2 text-sm font-bold text-white" @click="search">{{ t('common.search') }}</button>
         </div>
 
         <div class="overflow-x-auto rounded-card" style="background: var(--surface-card); box-shadow: var(--shadow-card)">
             <table class="data-table w-full text-sm">
                 <thead class="sticky top-0" style="background: var(--surface-panel-dark-alt); color: var(--text-on-dark)">
                     <tr>
-                        <th class="p-3 text-start">الاسم</th>
-                        <th class="hidden p-3 text-start md:table-cell">الهاتف</th>
-                        <th class="p-3 text-start">المتبقي</th>
+                        <th class="p-3 text-start">{{ t('debtors.colName') }}</th>
+                        <th class="hidden p-3 text-start md:table-cell">{{ t('debtors.colPhone') }}</th>
+                        <th class="hidden p-3 text-start lg:table-cell">{{ t('debtors.colAddress') }}</th>
+                        <th class="hidden p-3 text-start lg:table-cell">{{ t('debtors.colNotes') }}</th>
+                        <th class="p-3 text-start">{{ t('debtors.colRemaining') }}</th>
                         <th class="hidden p-3 text-center md:table-cell"><Icon name="star" filled style="color: #f59e0b" /></th>
                     </tr>
                 </thead>
@@ -71,7 +75,15 @@ function fmtRemaining(remaining) {
                             <Link :href="route('app.debtors.show', debtor.id)" class="font-semibold hover:underline">{{ debtor.name }}</Link>
                         </td>
                         <td class="hidden p-3 md:table-cell"><PhoneLink :phone="debtor.phone" /></td>
-                        <td class="p-3"><bdi class="bdi-ltr">{{ fmtRemaining(debtor.remaining) }}</bdi></td>
+                        <td class="hidden max-w-[14rem] truncate p-3 lg:table-cell">{{ debtor.address || '—' }}</td>
+                        <td class="hidden max-w-[14rem] truncate p-3 lg:table-cell">{{ debtor.note || '—' }}</td>
+                        <td class="p-3">
+                            <template v-if="remainingEntries(debtor.remaining).length === 0">—</template>
+                            <template v-for="(entry, i) in remainingEntries(debtor.remaining)" :key="entry.cur">
+                                <span v-if="i > 0"> + </span>
+                                <CurrencyAmount :currency="entry.cur" :amount="entry.val" />
+                            </template>
+                        </td>
                         <td class="hidden p-3 text-center md:table-cell">
                             <button type="button" @click="toggleFavorite(debtor)">
                                 <Icon name="star" :filled="debtor.is_favorite" :style="debtor.is_favorite ? 'color: #f59e0b' : 'color: var(--text-secondary)'" />
@@ -79,12 +91,12 @@ function fmtRemaining(remaining) {
                         </td>
                     </tr>
                     <tr v-if="debtors.data.length === 0">
-                        <td colspan="4" class="p-6 text-center" style="color: var(--text-secondary)">لا يوجد عملاء بعد.</td>
+                        <td colspan="6" class="p-6 text-center" style="color: var(--text-secondary)">{{ t('debtors.empty') }}</td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
-        <Pagination :links="debtors.links" />
+        <Pagination :paginator="debtors" />
     </AppLayout>
 </template>

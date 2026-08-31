@@ -63,7 +63,7 @@ class PaymentController extends Controller
         $intlPhone = PlatformSetting::get('country_code', '964').preg_replace('/^0/', '', $payment->debtor->phone);
         $waText = rawurlencode("مرحباً {$payment->debtor->name}، تم استلام دفعة بمبلغ ".number_format($payment->amount)." {$debt->currency}، رقم الوصل #{$payment->receipt_number}.");
 
-        return redirect()->route('app.debts.index')
+        return redirect()->route('app.debts.show', $debt->id)
             ->with('success', "تم تسجيل الدفعة — رقم الوصل {$payment->receipt_number}.")
             ->with('receiptUrl', route('app.payments.receipt', $payment->id))
             ->with('shareUrl', "https://wa.me/{$intlPhone}?text={$waText}");

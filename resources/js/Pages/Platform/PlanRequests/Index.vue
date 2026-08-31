@@ -79,6 +79,6 @@ function search() {
             </table>
         </div>
 
-        <Pagination :links="planRequests.links" />
+        <Pagination :paginator="planRequests" />
     </PlatformLayout>
 </template>

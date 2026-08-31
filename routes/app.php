@@ -4,6 +4,7 @@ use App\Http\Controllers\App\DebtController;
 use App\Http\Controllers\App\DebtorController;
 use App\Http\Controllers\App\GuarantorController;
 use App\Http\Controllers\App\MyDebtController;
+use App\Http\Controllers\App\NotificationController;
 use App\Http\Controllers\App\PaymentController;
 use App\Http\Controllers\App\ReceiptController;
 use App\Http\Controllers\App\SearchController;
@@ -16,14 +17,15 @@ Route::middleware(['auth:web', 'owner'])->prefix('app')->name('app.')->group(fun
 
     Route::get('debtors/favorites', [DebtorController::class, 'favorites'])->name('debtors.favorites');
     Route::patch('debtors/{debtor}/favorite', [DebtorController::class, 'toggleFavorite'])->name('debtors.toggle-favorite');
-    Route::get('debtors/{debtor}/id-document', [DebtorController::class, 'showDocument'])->name('debtors.id-document');
+    Route::get('debtors/{debtor}/id-document/{index}', [DebtorController::class, 'showDocument'])->name('debtors.id-document');
     Route::resource('debtors', DebtorController::class);
 
-    Route::get('guarantors/{guarantor}/id-document', [GuarantorController::class, 'showDocument'])->name('guarantors.id-document');
+    Route::get('guarantors/{guarantor}/id-document/{index}', [GuarantorController::class, 'showDocument'])->name('guarantors.id-document');
     Route::resource('guarantors', GuarantorController::class);
 
-    Route::resource('debts', DebtController::class)->only(['index', 'create', 'store']);
-    Route::resource('my-debts', MyDebtController::class)->only(['index', 'create', 'store']);
+    Route::resource('debts', DebtController::class)->only(['index', 'create', 'store', 'show']);
+    Route::resource('my-debts', MyDebtController::class)->only(['index', 'create', 'store', 'show']);
+    Route::post('my-debts/{myDebt}/payments', [MyDebtController::class, 'pay'])->name('my-debts.pay');
 
     Route::get('payments/create', [PaymentController::class, 'create'])->name('payments.create');
     Route::post('payments', [PaymentController::class, 'store'])->name('payments.store');
@@ -35,8 +37,12 @@ Route::middleware(['auth:web', 'owner'])->prefix('app')->name('app.')->group(fun
 
     Route::get('search/people', [SearchController::class, 'people'])->name('search.people');
 
+    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+
     Route::get('settings', [SettingsController::class, 'edit'])->name('settings.edit');
+    Route::get('settings/account', [SettingsController::class, 'accountEdit'])->name('settings.account.edit');
     Route::patch('settings/account', [SettingsController::class, 'updateAccount'])->name('settings.account');
+    Route::delete('settings/account', [SettingsController::class, 'destroyAccount'])->name('settings.account.destroy');
     Route::patch('settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password');
     Route::patch('settings/general', [SettingsController::class, 'updateGeneral'])->name('settings.general');
     Route::patch('settings/theme', [SettingsController::class, 'updateTheme'])->name('settings.theme');

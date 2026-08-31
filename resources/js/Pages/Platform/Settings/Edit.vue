@@ -4,30 +4,17 @@ import { useForm } from '@inertiajs/vue3';
 import PlatformLayout from '@/Layouts/PlatformLayout.vue';
 
 const props = defineProps({
-    user: { type: Object, required: true },
     settings: { type: Object, required: true },
     about: { type: Object, required: true },
+    privacyPolicy: { type: String, default: '' },
 });
 
-const tab = ref('account');
+const tab = ref('general');
 const tabs = [
-    { key: 'account', label: 'إدارة الحساب' },
     { key: 'general', label: 'عام' },
     { key: 'about', label: 'حول' },
+    { key: 'privacy', label: 'سياسة الخصوصية' },
 ];
-
-const accountForm = useForm({ name: props.user.name });
-function saveAccount() {
-    accountForm.patch(route('platform.settings.account'), { preserveScroll: true });
-}
-
-const passwordForm = useForm({ current_password: '', password: '', password_confirmation: '' });
-function savePassword() {
-    passwordForm.patch(route('platform.settings.password'), {
-        preserveScroll: true,
-        onSuccess: () => passwordForm.reset(),
-    });
-}
 
 const generalForm = useForm({
     trial_days: props.settings.trial_days,
@@ -48,9 +35,13 @@ function saveAbout() {
     aboutForm.patch(route('platform.settings.about'), { preserveScroll: true });
 }
 
-function logout() {
-    useForm({}).post(route('platform.logout'));
+const privacyForm = useForm({
+    privacy_policy: props.privacyPolicy,
+});
+function savePrivacy() {
+    privacyForm.patch(route('platform.settings.privacy-policy'), { preserveScroll: true });
 }
+
 </script>
 
 <template>
@@ -73,35 +64,7 @@ function logout() {
             </div>
 
             <div class="flex-1 rounded-card p-6" style="background: var(--surface-card); box-shadow: var(--shadow-card)">
-                <div v-if="tab === 'account'" class="space-y-8">
-                    <form class="space-y-4" @submit.prevent="saveAccount">
-                        <h2 class="font-bold">بيانات الحساب</h2>
-                        <div>
-                            <label class="mb-1 block text-sm font-semibold">الاسم</label>
-                            <input v-model="accountForm.name" type="text" class="w-full rounded-xl border px-4 py-2.5" style="border-color: var(--border-subtle)" />
-                        </div>
-                        <div>
-                            <label class="mb-1 block text-sm font-semibold">رقم الهاتف (للعرض فقط)</label>
-                            <input :value="user.phone" type="text" dir="ltr" disabled class="w-full rounded-xl border px-4 py-2.5 text-end" style="border-color: var(--border-subtle); background: var(--surface-page); color: var(--text-secondary)" />
-                        </div>
-                        <button type="submit" :disabled="accountForm.processing" class="rounded-pill bg-brand-600 px-6 py-2 font-bold text-white">حفظ</button>
-                    </form>
-
-                    <form class="space-y-4 border-t pt-6" style="border-color: var(--border-subtle)" @submit.prevent="savePassword">
-                        <h2 class="font-bold">تغيير كلمة المرور</h2>
-                        <input v-model="passwordForm.current_password" type="password" placeholder="كلمة المرور الحالية" autocomplete="current-password" class="w-full rounded-xl border px-4 py-2.5" style="border-color: var(--border-subtle)" />
-                        <p v-if="passwordForm.errors.current_password" class="text-sm text-red-600">{{ passwordForm.errors.current_password }}</p>
-                        <input v-model="passwordForm.password" type="password" placeholder="كلمة المرور الجديدة" autocomplete="new-password" class="w-full rounded-xl border px-4 py-2.5" style="border-color: var(--border-subtle)" />
-                        <input v-model="passwordForm.password_confirmation" type="password" placeholder="تأكيد كلمة المرور" autocomplete="new-password" class="w-full rounded-xl border px-4 py-2.5" style="border-color: var(--border-subtle)" />
-                        <button type="submit" :disabled="passwordForm.processing" class="rounded-pill bg-brand-600 px-6 py-2 font-bold text-white">تغيير</button>
-                    </form>
-
-                    <div class="border-t pt-6" style="border-color: var(--border-subtle)">
-                        <button type="button" class="rounded-pill border-2 border-red-500 px-6 py-2 font-bold text-red-600" @click="logout">تسجيل الخروج</button>
-                    </div>
-                </div>
-
-                <form v-else-if="tab === 'general'" class="space-y-4" @submit.prevent="saveGeneral">
+                <form v-if="tab === 'general'" class="space-y-4" @submit.prevent="saveGeneral">
                     <div>
                         <label class="mb-1 block text-sm font-semibold">مدة التجربة المجانية الافتراضية (بالأيام)</label>
                         <input
@@ -139,7 +102,7 @@ function logout() {
                             @input="generalForm.rows_per_page = $event.target.value.replace(/[^0-9]/g, '').slice(0, 3)"
                         />
                     </div>
-                    <button type="submit" :disabled="generalForm.processing" class="rounded-pill bg-brand-600 px-6 py-2 font-bold text-white">حفظ</button>
+                    <button type="submit" :disabled="generalForm.processing" class="rounded-pill bg-brand-600 px-6 py-2.5 font-bold text-white">حفظ</button>
                 </form>
 
                 <form v-else-if="tab === 'about'" class="space-y-4" @submit.prevent="saveAbout">
@@ -164,7 +127,21 @@ function logout() {
                         <input v-model="aboutForm.about_company_name" type="text" class="w-full rounded-xl border px-4 py-2.5" style="border-color: var(--border-subtle)" />
                         <p v-if="aboutForm.errors.about_company_name" class="mt-1 text-sm text-red-600">{{ aboutForm.errors.about_company_name }}</p>
                     </div>
-                    <button type="submit" :disabled="aboutForm.processing" class="rounded-pill bg-brand-600 px-6 py-2 font-bold text-white">حفظ</button>
+                    <button type="submit" :disabled="aboutForm.processing" class="rounded-pill bg-brand-600 px-6 py-2.5 font-bold text-white">حفظ</button>
+                </form>
+
+                <form v-else-if="tab === 'privacy'" class="space-y-4" @submit.prevent="savePrivacy">
+                    <p class="text-sm" style="color: var(--text-secondary)">
+                        هذا النص يظهر في صفحة سياسة الخصوصية العامة
+                        (<a :href="route('privacy-policy')" target="_blank" rel="noopener" class="font-semibold text-brand-700 hover:underline">عرض الصفحة</a>)
+                        وهي متاحة بدون تسجيل دخول.
+                    </p>
+                    <div>
+                        <label class="mb-1 block text-sm font-semibold">نص سياسة الخصوصية</label>
+                        <textarea v-model="privacyForm.privacy_policy" rows="16" class="w-full rounded-xl border px-4 py-2.5" style="border-color: var(--border-subtle)"></textarea>
+                        <p v-if="privacyForm.errors.privacy_policy" class="mt-1 text-sm text-red-600">{{ privacyForm.errors.privacy_policy }}</p>
+                    </div>
+                    <button type="submit" :disabled="privacyForm.processing" class="rounded-pill bg-brand-600 px-6 py-2.5 font-bold text-white">حفظ</button>
                 </form>
             </div>
         </div>

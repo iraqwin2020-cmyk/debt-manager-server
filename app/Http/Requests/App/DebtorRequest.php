@@ -27,7 +27,10 @@ class DebtorRequest extends FormRequest
             ],
             'address' => ['nullable', 'string', 'max:255'],
             'note' => ['nullable', 'string', 'max:2000'],
-            'id_document_image' => ['nullable', 'image', 'max:4096'],
+            'new_images' => ['nullable', 'array', 'max:5'],
+            'new_images.*' => ['image', 'max:4096'],
+            'keep_indexes' => ['nullable', 'array'],
+            'keep_indexes.*' => ['integer'],
         ];
     }
 
@@ -38,7 +41,8 @@ class DebtorRequest extends FormRequest
             'phone' => 'رقم الهاتف',
             'address' => 'العنوان',
             'note' => 'الملاحظات',
-            'id_document_image' => 'صورة المستمسك',
+            'new_images' => 'صور المستمسك',
+            'new_images.*' => 'صورة المستمسك',
         ];
     }
 
@@ -51,5 +55,15 @@ class DebtorRequest extends FormRequest
             'image' => 'يجب أن تكون :attribute صورة.',
             'max' => 'تجاوز :attribute الحد المسموح.',
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $total = count($this->input('keep_indexes', [])) + count($this->file('new_images', []));
+            if ($total > 5) {
+                $validator->errors()->add('new_images', 'لا يمكن رفع أكثر من 5 صور للمستمسك.');
+            }
+        });
     }
 }

@@ -1,43 +1,28 @@
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import SelectMenu from '@/Components/SelectMenu.vue';
 import PhoneLink from '@/Components/PhoneLink.vue';
+import CurrencyAmount from '@/Components/CurrencyAmount.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
     tenant: { type: Object, required: true },
-    user: { type: Object, required: true },
     plans: { type: Array, default: () => [] },
     planRequests: { type: Array, default: () => [] },
     about: { type: Object, required: true },
 });
 
-const tab = ref('account');
-const tabs = [
-    { key: 'account', label: 'إدارة الحساب' },
-    { key: 'general', label: 'عام' },
-    { key: 'receipts', label: 'الإيصالات' },
-    { key: 'subscription', label: 'الاشتراك' },
-    { key: 'about', label: 'حول' },
-];
-
-const accountForm = useForm({
-    office_name: props.tenant.name,
-    name: props.user.name,
-    logo: null,
-});
-function saveAccount() {
-    accountForm.patch(route('app.settings.account'), { preserveScroll: true });
-}
-
-const passwordForm = useForm({ current_password: '', password: '', password_confirmation: '' });
-function savePassword() {
-    passwordForm.patch(route('app.settings.password'), {
-        preserveScroll: true,
-        onSuccess: () => passwordForm.reset(),
-    });
-}
+const tab = ref('general');
+const tabs = computed(() => [
+    { key: 'general', label: t('settings.tabs.general') },
+    { key: 'receipts', label: t('settings.tabs.receipts') },
+    { key: 'subscription', label: t('settings.tabs.subscription') },
+    { key: 'about', label: t('settings.tabs.about') },
+]);
 
 const generalForm = useForm({
     locale: props.tenant.locale,
@@ -62,13 +47,6 @@ function requestPlan(planId) {
 
 const planRequestStatusLabels = { pending: 'قيد الانتظار', approved: 'مقبول', rejected: 'مرفوض' };
 const tenantStatusLabels = { active: 'نشط', trial: 'تجربة', expired: 'منتهي', suspended: 'معطّل', cancelled: 'ملغى' };
-function fmtPlanPrice(plan) {
-    return `${new Intl.NumberFormat('en-US').format(plan.price)} د.ع`;
-}
-
-function logout() {
-    useForm({}).post(route('logout'));
-}
 
 const contactForm = useForm({ email: '', message: '' });
 function sendContactMessage() {
@@ -81,7 +59,7 @@ function sendContactMessage() {
 
 <template>
     <AppLayout>
-        <h1 class="mb-6 text-lg font-extrabold sm:text-2xl">الإعدادات</h1>
+        <h1 class="mb-6 text-lg font-extrabold sm:text-2xl">{{ t('settings.title') }}</h1>
 
         <div class="flex flex-col gap-6 md:flex-row">
             <div class="flex gap-2 overflow-x-auto md:w-48 md:flex-col">
@@ -99,57 +77,21 @@ function sendContactMessage() {
             </div>
 
             <div class="flex-1 rounded-card p-6" style="background: var(--surface-card); box-shadow: var(--shadow-card)">
-                <div v-if="tab === 'account'" class="space-y-8">
-                    <form class="space-y-4" @submit.prevent="saveAccount">
-                        <h2 class="font-bold">بيانات الحساب</h2>
-                        <div>
-                            <label class="mb-1 block text-sm font-semibold">اسم المكتب</label>
-                            <input v-model="accountForm.office_name" type="text" class="w-full rounded-xl border px-4 py-2.5" style="border-color: var(--border-subtle)" />
-                        </div>
-                        <div>
-                            <label class="mb-1 block text-sm font-semibold">اسم المستخدم</label>
-                            <input v-model="accountForm.name" type="text" class="w-full rounded-xl border px-4 py-2.5" style="border-color: var(--border-subtle)" />
-                        </div>
-                        <div>
-                            <label class="mb-1 block text-sm font-semibold">رقم الهاتف (للعرض فقط)</label>
-                            <input :value="user.phone" type="text" dir="ltr" disabled class="w-full rounded-xl border px-4 py-2.5 text-end" style="border-color: var(--border-subtle); background: var(--surface-page); color: var(--text-secondary)" />
-                        </div>
-                        <div>
-                            <label class="mb-1 block text-sm font-semibold">الشعار</label>
-                            <input type="file" accept="image/*" class="w-full text-sm" @input="accountForm.logo = $event.target.files[0]" />
-                        </div>
-                        <button type="submit" :disabled="accountForm.processing" class="rounded-pill bg-brand-600 px-6 py-2 font-bold text-white">حفظ</button>
-                    </form>
-
-                    <form class="space-y-4 border-t pt-6" style="border-color: var(--border-subtle)" @submit.prevent="savePassword">
-                        <h2 class="font-bold">تغيير كلمة المرور</h2>
-                        <input v-model="passwordForm.current_password" type="password" placeholder="كلمة المرور الحالية" autocomplete="current-password" class="w-full rounded-xl border px-4 py-2.5" style="border-color: var(--border-subtle)" />
-                        <p v-if="passwordForm.errors.current_password" class="text-sm text-red-600">{{ passwordForm.errors.current_password }}</p>
-                        <input v-model="passwordForm.password" type="password" placeholder="كلمة المرور الجديدة" autocomplete="new-password" class="w-full rounded-xl border px-4 py-2.5" style="border-color: var(--border-subtle)" />
-                        <input v-model="passwordForm.password_confirmation" type="password" placeholder="تأكيد كلمة المرور" autocomplete="new-password" class="w-full rounded-xl border px-4 py-2.5" style="border-color: var(--border-subtle)" />
-                        <button type="submit" :disabled="passwordForm.processing" class="rounded-pill bg-brand-600 px-6 py-2 font-bold text-white">تغيير</button>
-                    </form>
-
-                    <div class="border-t pt-6" style="border-color: var(--border-subtle)">
-                        <button type="button" class="rounded-pill border-2 border-red-500 px-6 py-2 font-bold text-red-600" @click="logout">تسجيل الخروج</button>
-                    </div>
-                </div>
-
-                <form v-else-if="tab === 'general'" class="space-y-4" @submit.prevent="saveGeneral">
+                <form v-if="tab === 'general'" class="space-y-4" @submit.prevent="saveGeneral">
                     <div>
-                        <label class="mb-1 block text-sm font-semibold">اللغة</label>
+                        <label class="mb-1 block text-sm font-semibold">{{ t('settings.language') }}</label>
                         <SelectMenu
                             v-model="generalForm.locale"
                             full
                             :options="[
-                                { value: 'ar', label: 'العربية' },
-                                { value: 'en', label: 'English' },
-                                { value: 'ku', label: 'کوردی' },
+                                { value: 'ar', label: t('settings.languages.ar') },
+                                { value: 'en', label: t('settings.languages.en') },
+                                { value: 'ku', label: t('settings.languages.ku') },
                             ]"
                         />
                     </div>
                     <div>
-                        <label class="mb-1 block text-sm font-semibold">عدد الصفوف بكل صفحة</label>
+                        <label class="mb-1 block text-sm font-semibold">{{ t('settings.rowsPerPage') }}</label>
                         <input
                             :value="generalForm.rows_per_page"
                             type="text"
@@ -161,7 +103,7 @@ function sendContactMessage() {
                         />
                     </div>
                     <div>
-                        <label class="mb-1 block text-sm font-semibold">مدة التنبيه قبل السداد (بالأيام)</label>
+                        <label class="mb-1 block text-sm font-semibold">{{ t('settings.dueReminderDays') }}</label>
                         <input
                             :value="generalForm.due_reminder_days"
                             type="text"
@@ -173,7 +115,7 @@ function sendContactMessage() {
                         />
                     </div>
                     <div>
-                        <label class="mb-1 block text-sm font-semibold">فترة السماح بعد التأخر (بالأيام)</label>
+                        <label class="mb-1 block text-sm font-semibold">{{ t('settings.overdueGraceDays') }}</label>
                         <input
                             :value="generalForm.overdue_grace_days"
                             type="text"
@@ -184,7 +126,7 @@ function sendContactMessage() {
                             @input="generalForm.overdue_grace_days = $event.target.value.replace(/[^0-9]/g, '').slice(0, 2)"
                         />
                     </div>
-                    <button type="submit" :disabled="generalForm.processing" class="rounded-pill bg-brand-600 px-6 py-2 font-bold text-white">حفظ</button>
+                    <button type="submit" :disabled="generalForm.processing" class="rounded-pill bg-brand-600 px-6 py-2.5 font-bold text-white">{{ t('common.save') }}</button>
                 </form>
 
                 <div v-else-if="tab === 'receipts'" class="space-y-2 text-sm">
@@ -204,7 +146,7 @@ function sendContactMessage() {
                         <label class="block text-sm font-semibold">إدخال كود تفعيل</label>
                         <input v-model="codeForm.code" type="text" class="w-full rounded-xl border px-4 py-2.5" style="border-color: var(--border-subtle)" />
                         <p v-if="codeForm.errors.code" class="text-sm text-red-600">{{ codeForm.errors.code }}</p>
-                        <button type="submit" :disabled="codeForm.processing" class="rounded-pill bg-brand-600 px-6 py-2 font-bold text-white">تفعيل</button>
+                        <button type="submit" :disabled="codeForm.processing" class="rounded-pill bg-brand-600 px-6 py-2.5 font-bold text-white">تفعيل</button>
                     </form>
 
                     <div class="border-t pt-6" style="border-color: var(--border-subtle)">
@@ -219,7 +161,7 @@ function sendContactMessage() {
                             >
                                 <p class="font-bold">{{ plan.name }}</p>
                                 <p class="text-sm" style="color: var(--text-secondary)">
-                                    <bdi class="bdi-ltr">{{ fmtPlanPrice(plan) }}</bdi> / {{ plan.duration_days }} يوم
+                                    <CurrencyAmount currency="IQD" :amount="plan.price" /> / {{ plan.duration_days }} يوم
                                 </p>
                                 <p class="text-xs" style="color: var(--text-secondary)">حد العملاء: {{ plan.max_debtors }} — حد الأجهزة: {{ plan.max_devices }}</p>
                                 <span v-if="tenant.plan_id === plan.id" class="mt-2 inline-block rounded-pill bg-brand-600 px-3 py-1 text-xs font-bold text-white">باقتك الحالية</span>
@@ -258,6 +200,7 @@ function sendContactMessage() {
                     <div class="space-y-2 border-t pt-6 text-sm" style="border-color: var(--border-subtle)">
                         <p v-if="about.whatsapp"><span class="font-semibold">للتواصل عبر واتساب:</span> <PhoneLink :phone="about.whatsapp" /></p>
                         <p v-if="about.company_name"><span class="font-semibold">الشركة المطوّرة:</span> {{ about.company_name }}</p>
+                        <p><a :href="route('privacy-policy')" target="_blank" rel="noopener" class="font-semibold text-brand-700 hover:underline">سياسة الخصوصية</a></p>
                     </div>
 
                     <form v-if="about.email" class="space-y-3 border-t pt-6" style="border-color: var(--border-subtle)" @submit.prevent="sendContactMessage">
@@ -272,7 +215,7 @@ function sendContactMessage() {
                             <textarea v-model="contactForm.message" rows="4" class="w-full rounded-xl border px-4 py-2.5" style="border-color: var(--border-subtle)"></textarea>
                             <p v-if="contactForm.errors.message" class="mt-1 text-sm text-red-600">{{ contactForm.errors.message }}</p>
                         </div>
-                        <button type="submit" :disabled="contactForm.processing" class="rounded-pill bg-brand-600 px-6 py-2 font-bold text-white">إرسال</button>
+                        <button type="submit" :disabled="contactForm.processing" class="rounded-pill bg-brand-600 px-6 py-2.5 font-bold text-white">إرسال</button>
                     </form>
                 </div>
             </div>

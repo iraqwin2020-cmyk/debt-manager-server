@@ -23,6 +23,8 @@ class StoreDebtRequest extends FormRequest
             'debtor.phone' => ['required_without:debtor.id', 'nullable', 'digits:11'],
             'debtor.address' => ['nullable', 'string', 'max:255'],
             'debtor.note' => ['nullable', 'string', 'max:2000'],
+            'debtor.new_images' => ['nullable', 'array', 'max:5'],
+            'debtor.new_images.*' => ['image', 'max:4096'],
 
             'guarantors' => ['nullable', 'array'],
             'guarantors.*.id' => ['nullable', 'integer', 'exists:guarantors,id'],
@@ -30,6 +32,8 @@ class StoreDebtRequest extends FormRequest
             'guarantors.*.phone' => ['required_without:guarantors.*.id', 'nullable', 'digits:11'],
             'guarantors.*.address' => ['nullable', 'string', 'max:255'],
             'guarantors.*.note' => ['nullable', 'string', 'max:2000'],
+            'guarantors.*.new_images' => ['nullable', 'array', 'max:5'],
+            'guarantors.*.new_images.*' => ['image', 'max:4096'],
 
             'amount' => ['required', 'integer', 'min:1', new MultipleOfCurrencyUnit($currency ?? 'IQD')],
             'currency' => ['required', 'in:IQD,USD'],

@@ -1,15 +1,46 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { RTL_LOCALES } from '@/i18n';
 import Icon from '@/Components/Icon.vue';
+
+const { t, tm, locale } = useI18n();
+const isRtl = computed(() => RTL_LOCALES.includes(locale.value));
 
 const props = defineProps({
     modelValue: { type: String, default: '' }, // YYYY-MM-DD
-    placeholder: { type: String, default: 'اختر تاريخاً' },
+    placeholder: { type: String, default: null },
 });
 const emit = defineEmits(['update:modelValue']);
 
+const resolvedPlaceholder = computed(() => props.placeholder ?? t('datePicker.placeholder'));
 const open = ref(false);
-const weekDays = ['سب', 'أح', 'إث', 'ثل', 'أر', 'خم', 'جم'];
+const triggerRef = ref(null);
+const menuStyle = ref({});
+const weekDays = computed(() => tm('datePicker.weekDays'));
+
+function toggle() {
+    if (open.value) {
+        open.value = false;
+        return;
+    }
+
+    const rect = triggerRef.value.getBoundingClientRect();
+    const menuWidth = 288;
+    const menuHeight = 360;
+
+    let left = rect.left;
+    left = Math.min(left, window.innerWidth - menuWidth - 8);
+    left = Math.max(left, 8);
+
+    let top = rect.bottom + 4;
+    if (top + menuHeight > window.innerHeight - 8) {
+        top = Math.max(8, rect.top - menuHeight - 4);
+    }
+
+    menuStyle.value = { top: `${top}px`, left: `${left}px` };
+    open.value = true;
+}
 
 function parse(value) {
     if (!value) return null;
@@ -37,9 +68,7 @@ watch(open, (isOpen) => {
     }
 });
 
-const monthLabel = computed(() =>
-    new Intl.DateTimeFormat('ar', { month: 'long', year: 'numeric' }).format(new Date(view.value.y, view.value.m - 1, 1))
-);
+const monthLabel = computed(() => `${tm('datePicker.months')[view.value.m - 1]} ${view.value.y}`);
 
 const displayText = computed(() => {
     if (!selected.value) return '';
@@ -99,58 +128,61 @@ function clear() {
 <template>
     <span class="relative block">
         <button
+            ref="triggerRef"
             type="button"
-            class="flex w-full items-center justify-between gap-2 rounded-xl border px-4 py-2.5 text-sm"
+            class="flex w-full items-center justify-between gap-2 rounded-xl border px-4 py-2.5"
             style="border-color: var(--border-subtle); background: var(--surface-card); color: var(--text-primary)"
-            @click="open = !open"
+            @click="toggle"
         >
             <bdi v-if="selected" class="bdi-date font-semibold" dir="rtl">{{ displayText }}</bdi>
-            <span v-else style="color: var(--text-secondary)">{{ placeholder }}</span>
+            <span v-else style="color: var(--text-secondary)">{{ resolvedPlaceholder }}</span>
             <Icon name="calendar" class="shrink-0" style="color: var(--text-secondary)" />
         </button>
 
-        <div
-            v-if="open"
-            class="absolute z-20 mt-1 w-72 rounded-2xl border p-3 shadow-lg"
-            style="background: var(--surface-card); border-color: var(--border-subtle)"
-        >
-            <div class="mb-2 flex items-center justify-between">
-                <button type="button" class="flex h-8 w-8 items-center justify-center rounded-full border border-transparent transition-[border-color] hover:border-brand-400" @click="prevMonth">
-                    <Icon name="back" style="transform: scaleX(-1); color: var(--text-primary)" />
-                </button>
-                <span class="text-sm font-bold" style="color: var(--text-primary)">{{ monthLabel }}</span>
-                <button type="button" class="flex h-8 w-8 items-center justify-center rounded-full border border-transparent transition-[border-color] hover:border-brand-400" @click="nextMonth">
-                    <Icon name="back" style="color: var(--text-primary)" />
-                </button>
-            </div>
+        <Teleport to="body">
+            <div
+                v-if="open"
+                class="fixed z-50 w-72 rounded-2xl border p-3 shadow-lg"
+                :style="{ ...menuStyle, background: 'var(--surface-solid)', borderColor: 'var(--border-subtle)' }"
+            >
+                <div class="mb-2 flex items-center justify-between">
+                    <button type="button" class="flex h-8 w-8 items-center justify-center rounded-full border border-transparent transition-[border-color] hover:border-brand-400" @click="prevMonth">
+                        <Icon name="back" :style="isRtl ? 'transform: scaleX(-1); color: var(--text-primary)' : 'color: var(--text-primary)'" />
+                    </button>
+                    <span class="text-sm font-bold" style="color: var(--text-primary)">{{ monthLabel }}</span>
+                    <button type="button" class="flex h-8 w-8 items-center justify-center rounded-full border border-transparent transition-[border-color] hover:border-brand-400" @click="nextMonth">
+                        <Icon name="back" :style="isRtl ? 'color: var(--text-primary)' : 'transform: scaleX(-1); color: var(--text-primary)'" />
+                    </button>
+                </div>
 
-            <div class="mb-1 grid grid-cols-7 text-center text-xs font-semibold" style="color: var(--text-secondary)">
-                <span v-for="wd in weekDays" :key="wd">{{ wd }}</span>
-            </div>
+                <div class="mb-1 grid grid-cols-7 text-center text-xs font-semibold" style="color: var(--text-secondary)">
+                    <span v-for="wd in weekDays" :key="wd">{{ wd }}</span>
+                </div>
 
-            <div class="grid grid-cols-7 gap-1">
-                <button
-                    v-for="(cell, i) in grid"
-                    :key="i"
-                    type="button"
-                    class="flex h-8 w-8 items-center justify-center rounded-full text-sm transition"
-                    :class="!cell.inMonth ? 'opacity-35' : ''"
-                    :style="cell.isSelected
-                        ? 'background: var(--color-brand-600); color: #fff; font-weight: 700'
-                        : cell.isToday
-                            ? 'border: 1.5px solid var(--color-brand-500); color: var(--text-primary)'
-                            : 'color: var(--text-primary)'"
-                    @click="pick(cell)"
-                >
-                    {{ cell.d }}
-                </button>
-            </div>
+                <div class="grid grid-cols-7 gap-1">
+                    <button
+                        v-for="(cell, i) in grid"
+                        :key="i"
+                        type="button"
+                        class="flex h-8 w-8 items-center justify-center rounded-full text-sm transition"
+                        :class="!cell.inMonth ? 'opacity-35' : ''"
+                        :style="cell.isSelected
+                            ? 'background: var(--color-brand-600); color: #fff; font-weight: 700'
+                            : cell.isToday
+                                ? 'border: 1.5px solid var(--color-brand-500); color: var(--text-primary)'
+                                : 'color: var(--text-primary)'"
+                        @click="pick(cell)"
+                    >
+                        {{ cell.d }}
+                    </button>
+                </div>
 
-            <div class="mt-3 flex items-center justify-between border-t pt-2 text-sm font-semibold" style="border-color: var(--border-subtle)">
-                <button type="button" class="text-red-600 hover:underline" @click="clear">مسح</button>
-                <button type="button" class="text-brand-700 hover:underline" @click="pickToday">اليوم</button>
+                <div class="mt-3 flex items-center justify-between border-t pt-2 text-sm font-semibold" style="border-color: var(--border-subtle)">
+                    <button type="button" class="text-red-600 hover:underline" @click="clear">{{ t('datePicker.clear') }}</button>
+                    <button type="button" class="text-brand-700 hover:underline" @click="pickToday">{{ t('datePicker.today') }}</button>
+                </div>
             </div>
-        </div>
-        <div v-if="open" class="fixed inset-0 z-10" @click="open = false"></div>
+            <div v-if="open" class="fixed inset-0 z-40" @click="open = false"></div>
+        </Teleport>
     </span>
 </template>

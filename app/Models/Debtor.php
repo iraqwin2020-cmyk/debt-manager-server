@@ -10,8 +10,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 
-#[Fillable(['tenant_id', 'name', 'phone', 'address', 'id_document_image', 'is_favorite', 'note'])]
-#[Hidden(['id_document_image'])]
+#[Fillable(['tenant_id', 'name', 'phone', 'address', 'id_document_images', 'is_favorite', 'note'])]
+#[Hidden(['id_document_images'])]
 class Debtor extends Model
 {
     use BelongsToTenant, SoftDeletes;
@@ -20,6 +20,7 @@ class Debtor extends Model
     {
         return [
             'is_favorite' => 'boolean',
+            'id_document_images' => 'array',
         ];
     }
 

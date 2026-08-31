@@ -24,7 +24,7 @@ class DebtController extends Controller
         $tenant = $request->user()->tenant;
 
         $debts = Debt::query()
-            ->with('debtor:id,name,phone')
+            ->with(['debtor:id,name,phone', 'guarantors:id,name'])
             ->when($request->filled('q'), function ($q) use ($request) {
                 $term = $request->string('q');
                 $q->where(function ($q) use ($term) {
@@ -51,6 +51,15 @@ class DebtController extends Controller
         ]);
     }
 
+    public function show(Debt $debt): Response
+    {
+        $debt->load(['debtor', 'guarantors', 'installments', 'payments' => fn ($q) => $q->latest('paid_at')]);
+
+        return Inertia::render('App/Debts/Show', [
+            'debt' => $debt,
+        ]);
+    }
+
     public function create(): Response
     {
         return Inertia::render('App/Debts/Create');
@@ -60,6 +69,13 @@ class DebtController extends Controller
     {
         $data = $request->validated();
         $tenant = $request->user()->tenant;
+
+        if (isset($data['debtor'])) {
+            $data['debtor']['new_images'] = $request->file('debtor.new_images', []);
+        }
+        foreach ($data['guarantors'] ?? [] as $i => $g) {
+            $data['guarantors'][$i]['new_images'] = $request->file("guarantors.{$i}.new_images", []);
+        }
 
         $debt = DB::transaction(function () use ($data, $tenant) {
             $lockedTenant = Tenant::whereKey($tenant->id)->lockForUpdate()->first();
@@ -131,11 +147,17 @@ class DebtController extends Controller
             return $existing;
         }
 
+        $imagePaths = array_map(
+            fn ($file) => $file->store('id-documents', 'local'),
+            $payload['new_images'] ?? []
+        );
+
         return $modelClass::create([
             'name' => $payload['name'],
             'phone' => $payload['phone'],
             'address' => $payload['address'] ?? null,
             'note' => $payload['note'] ?? null,
+            'id_document_images' => $imagePaths,
         ]);
     }
 }

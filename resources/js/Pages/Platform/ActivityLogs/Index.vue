@@ -64,6 +64,6 @@ function search() {
             </table>
         </div>
 
-        <Pagination :links="logs.links" />
+        <Pagination :paginator="logs" />
     </PlatformLayout>
 </template>

@@ -27,8 +27,10 @@ class SettingsController extends Controller
         $tenant = $request->user()->tenant;
 
         return Inertia::render('App/Settings/Edit', [
-            'tenant' => $tenant,
-            'user' => $request->user(),
+            'tenant' => [
+                ...$tenant->toArray(),
+                'logo' => $tenant->logo ? Storage::disk('public')->url($tenant->logo) : null,
+            ],
             'plans' => Plan::where('is_default_trial', false)->orderBy('price')->get(),
             'planRequests' => PlanUpgradeRequest::where('tenant_id', $tenant->id)->with('plan')->latest()->get(),
             'about' => [
@@ -37,6 +39,19 @@ class SettingsController extends Controller
                 'email' => PlatformSetting::get('about_email', ''),
                 'company_name' => PlatformSetting::get('about_company_name', ''),
             ],
+        ]);
+    }
+
+    public function accountEdit(Request $request): Response
+    {
+        $tenant = $request->user()->tenant;
+
+        return Inertia::render('App/Settings/Account', [
+            'tenant' => [
+                ...$tenant->toArray(),
+                'logo' => $tenant->logo ? Storage::disk('public')->url($tenant->logo) : null,
+            ],
+            'user' => $request->user(),
         ]);
     }
 
@@ -58,6 +73,28 @@ class SettingsController extends Controller
         $request->user()->update(['name' => $data['name']]);
 
         return back()->with('success', 'تم تحديث بيانات الحساب.');
+    }
+
+    public function destroyAccount(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'password' => ['required', 'current_password'],
+        ], [
+            'required' => 'حقل :attribute مطلوب.',
+            'current_password' => 'كلمة المرور غير صحيحة.',
+        ], ['password' => 'كلمة المرور']);
+
+        $user = $request->user();
+        $tenant = $user->tenant;
+
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        $user->delete();
+        $tenant->delete();
+
+        return redirect()->route('home')->with('success', 'تم حذف الحساب بنجاح.');
     }
 
     public function updatePassword(Request $request): RedirectResponse

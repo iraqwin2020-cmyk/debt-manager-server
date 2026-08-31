@@ -71,6 +71,13 @@ const props = defineProps({
             <path d="M5.5 9v0M18.5 15v0" />
         </template>
 
+        <template v-else-if="name === 'share'">
+            <circle cx="18" cy="5.5" r="2.3" />
+            <circle cx="6" cy="12" r="2.3" />
+            <circle cx="18" cy="18.5" r="2.3" />
+            <path d="m8 10.8 8-4.3M8 13.2l8 4.3" />
+        </template>
+
         <template v-else-if="name === 'print'">
             <path d="M7 8.5V4h10v4.5" />
             <rect x="4.5" y="8.5" width="15" height="7" rx="1.5" />
@@ -141,6 +148,11 @@ const props = defineProps({
 
         <template v-else-if="name === 'back'">
             <path d="M15 5 8 12l7 7" />
+        </template>
+
+        <template v-else-if="name === 'skip'">
+            <path d="M17 5 10 12l7 7" />
+            <path d="M10 5 3 12l7 7" />
         </template>
 
         <template v-else-if="name === 'search'">

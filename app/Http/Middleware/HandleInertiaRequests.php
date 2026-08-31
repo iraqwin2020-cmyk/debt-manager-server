@@ -8,6 +8,8 @@ use App\Models\PlatformSetting;
 use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -35,7 +37,7 @@ class HandleInertiaRequests extends Middleware
                 'tenant' => $user?->tenant ? [
                     'id' => $user->tenant->id,
                     'name' => $user->tenant->name,
-                    'logo' => $user->tenant->logo,
+                    'logo' => $user->tenant->logo ? Storage::disk('public')->url($user->tenant->logo) : null,
                     'status' => $user->tenant->status,
                     'trial_ends_at' => $user->tenant->trial_ends_at,
                     'subscription_ends_at' => $user->tenant->subscription_ends_at,
@@ -62,6 +64,49 @@ class HandleInertiaRequests extends Middleware
                     })->count(),
                 'recent' => PlatformNotification::latest()->take(6)->get(['id', 'type', 'title', 'link', 'read_at', 'created_at']),
             ] : null,
+            'tenantNotifications' => fn () => ($user && ! $user->isPlatformAdmin() && $user->tenant)
+                ? $this->tenantNotifications($user->tenant)
+                : null,
+        ];
+    }
+
+    private function tenantNotifications(Tenant $tenant): array
+    {
+        $debtsQuery = $tenant->debts();
+
+        $overdue = (clone $debtsQuery)
+            ->whereColumn('paid_amount', '<', 'amount')
+            ->whereNotNull('due_date')
+            ->whereRaw('DATE_ADD(due_date, INTERVAL ? DAY) < CURDATE()', [$tenant->overdue_grace_days])
+            ->with('debtor:id,name')
+            ->latest('due_date')
+            ->take(5)
+            ->get(['id', 'debtor_id', 'amount', 'paid_amount', 'currency', 'due_date']);
+
+        $dueToday = (clone $debtsQuery)
+            ->whereColumn('paid_amount', '<', 'amount')
+            ->where('due_date', now()->toDateString())
+            ->with('debtor:id,name')
+            ->take(5)
+            ->get(['id', 'debtor_id', 'amount', 'paid_amount', 'currency', 'due_date']);
+
+        $format = function ($debt, string $prefix) {
+            $remaining = number_format($debt->amount - $debt->paid_amount).' '.($debt->currency === 'USD' ? '$' : 'د.ع');
+
+            return [
+                'id' => $prefix.'-'.$debt->id,
+                'title' => "{$prefix}: ".($debt->debtor?->name ?? '—'),
+                'meta' => $remaining,
+                'link' => Route::has('app.debtors.show') ? route('app.debtors.show', $debt->debtor_id) : null,
+            ];
+        };
+
+        $recent = $overdue->map(fn ($d) => $format($d, 'دين متأخر'))
+            ->merge($dueToday->map(fn ($d) => $format($d, 'استحقاق اليوم')));
+
+        return [
+            'count' => $overdue->count() + $dueToday->count(),
+            'recent' => $recent->values(),
         ];
     }
 }

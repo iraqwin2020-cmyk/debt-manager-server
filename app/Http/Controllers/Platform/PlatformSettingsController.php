@@ -15,7 +15,6 @@ class PlatformSettingsController extends Controller
     public function edit(Request $request): Response
     {
         return Inertia::render('Platform/Settings/Edit', [
-            'user' => $request->user(),
             'settings' => [
                 'trial_days' => (int) PlatformSetting::get('trial_days', 14),
                 'country_code' => PlatformSetting::get('country_code', '964'),
@@ -28,6 +27,14 @@ class PlatformSettingsController extends Controller
                 'about_email' => PlatformSetting::get('about_email', ''),
                 'about_company_name' => PlatformSetting::get('about_company_name', ''),
             ],
+            'privacyPolicy' => PlatformSetting::get('privacy_policy', ''),
+        ]);
+    }
+
+    public function accountEdit(Request $request): Response
+    {
+        return Inertia::render('Platform/Settings/Account', [
+            'user' => $request->user(),
         ]);
     }
 
@@ -117,5 +124,19 @@ class PlatformSettingsController extends Controller
         }
 
         return back()->with('success', 'تم حفظ محتوى تبويب "حول".');
+    }
+
+    public function updatePrivacyPolicy(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'privacy_policy' => ['required', 'string', 'max:20000'],
+        ], [
+            'required' => 'حقل :attribute مطلوب.',
+            'max' => 'قيمة :attribute أطول من الحد المسموح.',
+        ], ['privacy_policy' => 'نص سياسة الخصوصية']);
+
+        PlatformSetting::set('privacy_policy', $validated['privacy_policy']);
+
+        return back()->with('success', 'تم حفظ سياسة الخصوصية.');
     }
 }

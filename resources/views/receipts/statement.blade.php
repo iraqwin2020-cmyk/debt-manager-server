@@ -7,15 +7,15 @@
     <style>
         :root { color-scheme: light; }
         body { font-family: 'Cairo', sans-serif; padding: 24px; color: #1a1625; background: #fff; max-width: 720px; margin: 0 auto; }
-        .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #7c3aed; padding-bottom: 16px; margin-bottom: 24px; }
+        .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #e8600c; padding-bottom: 16px; margin-bottom: 24px; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
         td, th { border: 1px solid #ddd; padding: 8px 12px; text-align: start; font-size: 14px; }
         .section-title { font-weight: 800; margin-top: 20px; margin-bottom: 8px; }
         .toolbar { display: flex; gap: 8px; margin-bottom: 16px; }
-        .toolbar a, .toolbar button { font-family: inherit; font-size: 14px; font-weight: 700; padding: 8px 16px; border-radius: 999px; border: 2px solid #7c3aed; background: #fff; color: #7c3aed; cursor: pointer; text-decoration: none; }
+        .toolbar a, .toolbar button { font-family: inherit; font-size: 14px; font-weight: 700; padding: 8px 16px; border-radius: 999px; border: 2px solid #e8600c; background: #fff; color: #e8600c; cursor: pointer; text-decoration: none; }
         bdi { direction: ltr; unicode-bidi: isolate; display: inline-block; }
         bdi.date-rtl { direction: rtl; }
-        .total-row { font-weight: 800; background: #f5f3ff; }
+        .total-row { font-weight: 800; background: #fff6ec; }
 
         @media print {
             .toolbar { display: none; }
@@ -55,7 +55,7 @@
             <tr>
                 <th colspan="4">
                     وصل دين <bdi>#{{ $debt->receipt_number }}</bdi> —
-                    <bdi>{{ number_format($debt->amount) }}</bdi> {{ $debt->currency === 'USD' ? '$' : 'د.ع' }}
+                    <span style="display:inline-flex;align-items:center;gap:4px" dir="ltr"><span>{{ $debt->currency === 'USD' ? '$' : 'د.ع' }}</span><bdi>{{ number_format($debt->amount) }}</bdi></span>
                     (<bdi class="date-rtl" dir="rtl">{{ $debt->created_at->format('Y-m-d') }}</bdi>)
                 </th>
             </tr>
@@ -72,7 +72,7 @@
             @endforelse
             <tr class="total-row">
                 <td colspan="2">المتبقي</td>
-                <td colspan="2"><bdi>{{ number_format($debt->amount - $debt->paid_amount) }}</bdi> {{ $debt->currency === 'USD' ? '$' : 'د.ع' }}</td>
+                <td colspan="2"><span style="display:inline-flex;align-items:center;gap:4px" dir="ltr"><span>{{ $debt->currency === 'USD' ? '$' : 'د.ع' }}</span><bdi>{{ number_format($debt->amount - $debt->paid_amount) }}</bdi></span></td>
             </tr>
         </table>
     @endforeach

@@ -9,11 +9,18 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['tenant_id', 'name', 'phone', 'address', 'id_document_image', 'note'])]
-#[Hidden(['id_document_image'])]
+#[Fillable(['tenant_id', 'name', 'phone', 'address', 'id_document_images', 'note'])]
+#[Hidden(['id_document_images'])]
 class Guarantor extends Model
 {
     use BelongsToTenant, SoftDeletes;
+
+    protected function casts(): array
+    {
+        return [
+            'id_document_images' => 'array',
+        ];
+    }
 
     /** الديون التي يتكفّل بها هذا الكفيل — الكفيل نفسه ليس عليه دين */
     public function debts(): BelongsToMany

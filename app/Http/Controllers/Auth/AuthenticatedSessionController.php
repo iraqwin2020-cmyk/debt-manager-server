@@ -89,6 +89,7 @@ class AuthenticatedSessionController extends Controller
         }
 
         Auth::guard($guardName)->logout();
+        $request->session()->invalidate();
         $request->session()->regenerateToken();
 
         $response = redirect($guardName === 'platform' ? '/login' : '/');

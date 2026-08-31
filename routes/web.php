@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Models\PlatformSetting;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -11,6 +12,12 @@ Route::get('/', function () {
         ? redirect()->route('app.dashboard')
         : Inertia::render('Welcome');
 })->name('home');
+
+Route::get('privacy-policy', function () {
+    return Inertia::render('PrivacyPolicy', [
+        'content' => PlatformSetting::get('privacy_policy', ''),
+    ]);
+})->name('privacy-policy');
 
 // لا يوجد قيد "guest" هنا عمداً: يمكن أن يكون المستخدم مسجَّلاً دخوله بحساب
 // (مشترك أو مدير منصة) ويريد تسجيل الدخول بالحساب الآخر في نفس المتصفح.
