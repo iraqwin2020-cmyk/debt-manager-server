@@ -46,7 +46,7 @@ Route::middleware(['auth:web', 'owner'])->prefix('app')->name('app.')->group(fun
     Route::patch('settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password');
     Route::patch('settings/general', [SettingsController::class, 'updateGeneral'])->name('settings.general');
     Route::patch('settings/theme', [SettingsController::class, 'updateTheme'])->name('settings.theme');
-    Route::post('settings/redeem-code', [SettingsController::class, 'redeemCode'])->name('settings.redeem-code');
+    Route::post('settings/redeem-code', [SettingsController::class, 'redeemCode'])->name('settings.redeem-code')->middleware('throttle:10,1');
     Route::post('settings/request-plan', [SettingsController::class, 'requestPlan'])->name('settings.request-plan');
     Route::post('settings/about-message', [SettingsController::class, 'sendAboutMessage'])->name('settings.about-message')->middleware('throttle:3,1');
 });

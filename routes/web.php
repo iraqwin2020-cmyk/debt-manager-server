@@ -22,7 +22,7 @@ Route::get('privacy-policy', function () {
 // لا يوجد قيد "guest" هنا عمداً: يمكن أن يكون المستخدم مسجَّلاً دخوله بحساب
 // (مشترك أو مدير منصة) ويريد تسجيل الدخول بالحساب الآخر في نفس المتصفح.
 Route::get('register', [RegisteredUserController::class, 'create'])->name('register');
-Route::post('register', [RegisteredUserController::class, 'store']);
+Route::post('register', [RegisteredUserController::class, 'store'])->middleware('throttle:6,1');
 
 Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
 Route::post('login', [AuthenticatedSessionController::class, 'store']);

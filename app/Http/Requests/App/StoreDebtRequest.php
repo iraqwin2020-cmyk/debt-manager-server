@@ -3,6 +3,7 @@
 namespace App\Http\Requests\App;
 
 use App\Rules\MultipleOfCurrencyUnit;
+use App\Services\InstallmentCalculator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -87,5 +88,22 @@ class StoreDebtRequest extends FormRequest
             'date' => 'صيغة :attribute غير صحيحة.',
             'exists' => ':attribute المحدَّد غير موجود.',
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            if ($this->input('payment_type') !== 'installments' || $this->input('installment_method') !== 'count') {
+                return;
+            }
+
+            $amount = (int) $this->input('amount');
+            $count = (int) $this->input('installment_count');
+            $unit = InstallmentCalculator::unitFor($this->input('currency', 'IQD'));
+
+            if ($count > 0 && $count * $unit > $amount) {
+                $validator->errors()->add('installment_count', 'عدد الأقساط كبير جداً على هذا المبلغ.');
+            }
+        });
     }
 }

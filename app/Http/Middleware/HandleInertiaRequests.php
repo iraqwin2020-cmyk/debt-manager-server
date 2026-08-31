@@ -77,7 +77,7 @@ class HandleInertiaRequests extends Middleware
         $overdue = (clone $debtsQuery)
             ->whereColumn('paid_amount', '<', 'amount')
             ->whereNotNull('due_date')
-            ->whereRaw('DATE_ADD(due_date, INTERVAL ? DAY) < CURDATE()', [$tenant->overdue_grace_days])
+            ->where('due_date', '<', now()->subDays($tenant->overdue_grace_days)->toDateString())
             ->with('debtor:id,name')
             ->latest('due_date')
             ->take(5)

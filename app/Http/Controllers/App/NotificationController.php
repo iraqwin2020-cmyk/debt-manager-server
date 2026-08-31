@@ -17,7 +17,7 @@ class NotificationController extends Controller
         $overdue = (clone $debtsQuery)
             ->whereColumn('paid_amount', '<', 'amount')
             ->whereNotNull('due_date')
-            ->whereRaw('DATE_ADD(due_date, INTERVAL ? DAY) < CURDATE()', [$tenant->overdue_grace_days])
+            ->where('due_date', '<', now()->subDays($tenant->overdue_grace_days)->toDateString())
             ->with('debtor:id,name')
             ->orderBy('due_date')
             ->get(['id', 'debtor_id', 'amount', 'paid_amount', 'currency', 'due_date']);

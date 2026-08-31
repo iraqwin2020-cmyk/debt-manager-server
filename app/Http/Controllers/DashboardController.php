@@ -26,7 +26,7 @@ class DashboardController extends Controller
                 'overdueCount' => (clone $debtsQuery)
                     ->whereColumn('paid_amount', '<', 'amount')
                     ->whereNotNull('due_date')
-                    ->whereRaw('DATE_ADD(due_date, INTERVAL ? DAY) < CURDATE()', [$tenant->overdue_grace_days])
+                    ->where('due_date', '<', now()->subDays($tenant->overdue_grace_days)->toDateString())
                     ->count(),
                 'dueTodayCount' => (clone $debtsQuery)
                     ->whereColumn('paid_amount', '<', 'amount')

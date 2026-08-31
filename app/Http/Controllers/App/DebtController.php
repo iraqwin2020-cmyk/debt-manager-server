@@ -39,7 +39,7 @@ class DebtController extends Controller
             ->when($request->input('status') === 'overdue', function ($q) use ($tenant) {
                 $q->whereColumn('paid_amount', '<', 'amount')
                     ->whereNotNull('due_date')
-                    ->whereRaw('DATE_ADD(due_date, INTERVAL ? DAY) < CURDATE()', [$tenant->overdue_grace_days]);
+                    ->where('due_date', '<', now()->subDays($tenant->overdue_grace_days)->toDateString());
             })
             ->latest()
             ->paginate($tenant->rows_per_page)
