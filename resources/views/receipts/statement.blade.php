@@ -56,14 +56,14 @@
                 <th colspan="4">
                     وصل دين <bdi>#{{ $debt->receipt_number }}</bdi> —
                     <span style="display:inline-flex;align-items:center;gap:4px" dir="ltr"><span>{{ $debt->currency === 'USD' ? '$' : 'د.ع' }}</span><bdi>{{ number_format($debt->amount) }}</bdi></span>
-                    (<bdi class="date-rtl" dir="rtl">{{ $debt->created_at->format('Y-m-d') }}</bdi>)
+                    (<bdi class="date-rtl" dir="rtl">{{ $debt->created_at->format('d m Y') }}</bdi>)
                 </th>
             </tr>
             <tr><th>رقم الوصل</th><th>تاريخ الدفعة</th><th>المبلغ</th><th></th></tr>
             @forelse($debt->payments as $payment)
                 <tr>
                     <td><bdi>#{{ $payment->receipt_number }}</bdi></td>
-                    <td><bdi class="date-rtl" dir="rtl">{{ $payment->paid_at->format('Y-m-d') }}</bdi></td>
+                    <td><bdi class="date-rtl" dir="rtl">{{ $payment->paid_at->format('d m Y') }}</bdi></td>
                     <td><bdi>{{ number_format($payment->amount) }}</bdi></td>
                     <td></td>
                 </tr>

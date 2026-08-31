@@ -6,6 +6,7 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
 import SelectMenu from '@/Components/SelectMenu.vue';
 import CurrencyAmount from '@/Components/CurrencyAmount.vue';
+import FormattedDate from '@/Components/FormattedDate.vue';
 
 const { t } = useI18n();
 
@@ -101,7 +102,7 @@ function rowClass(debt) {
                         <td class="p-3"><CurrencyAmount :currency="debt.currency" :amount="debt.amount - debt.paid_amount" /></td>
                         <td class="p-3">{{ debt.payment_type === 'installments' ? t('debtors.typeInstallments') : t('debtors.typeLumpSum') }}</td>
                         <td class="hidden max-w-[14rem] truncate p-3 lg:table-cell">{{ debt.description || '—' }}</td>
-                        <td class="p-3"><bdi class="bdi-date" dir="rtl">{{ debt.due_date ?? '—' }}</bdi></td>
+                        <td class="p-3"><FormattedDate :value="debt.due_date" /></td>
                     </tr>
                     <tr v-if="debts.data.length === 0">
                         <td colspan="8" class="p-6 text-center" style="color: var(--text-secondary)">{{ t('debts.empty') }}</td>

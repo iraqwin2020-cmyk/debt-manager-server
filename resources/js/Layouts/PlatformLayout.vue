@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import FlashToast from '@/Components/FlashToast.vue';
 import Icon from '@/Components/Icon.vue';
+import FormattedDate from '@/Components/FormattedDate.vue';
 
 const page = usePage();
 const user = computed(() => page.props.auth?.user);
@@ -11,15 +12,19 @@ const pendingPlanRequestsCount = computed(() => page.props.pendingPlanRequestsCo
 const notifications = computed(() => page.props.notifications ?? { unreadCount: 0, recent: [] });
 
 const navItems = computed(() => [
-    { label: 'الرئيسية', route: 'platform.dashboard' },
-    { label: 'المشتركون', route: 'platform.subscribers.index' },
-    { label: 'الباقات', route: 'platform.plans.index' },
-    { label: 'أكواد التفعيل', route: 'platform.activation-codes.index' },
-    { label: 'طلبات الخطط', route: 'platform.plan-requests.index', badge: pendingPlanRequestsCount.value },
-    { label: 'الإشعارات', route: 'platform.notifications.index', badge: notifications.value.unreadCount },
-    { label: 'سجل الحركات', route: 'platform.activity-logs.index' },
-    { label: 'الإعدادات', route: 'platform.settings.edit' },
+    { label: 'الرئيسية', route: 'platform.dashboard', match: ['platform.dashboard'] },
+    { label: 'المشتركون', route: 'platform.subscribers.index', match: ['platform.subscribers.*'] },
+    { label: 'الباقات', route: 'platform.plans.index', match: ['platform.plans.*'] },
+    { label: 'أكواد التفعيل', route: 'platform.activation-codes.index', match: ['platform.activation-codes.*'] },
+    { label: 'طلبات الخطط', route: 'platform.plan-requests.index', match: ['platform.plan-requests.*'], badge: pendingPlanRequestsCount.value },
+    { label: 'الإشعارات', route: 'platform.notifications.index', match: ['platform.notifications.*'], badge: notifications.value.unreadCount },
+    { label: 'سجل الحركات', route: 'platform.activity-logs.index', match: ['platform.activity-logs.*'] },
+    { label: 'الإعدادات', route: 'platform.settings.edit', match: ['platform.settings.*'] },
 ]);
+
+function isActive(item) {
+    return item.match.some((pattern) => route().current(pattern));
+}
 
 const menuOpen = ref(false);
 const notifOpen = ref(false);
@@ -90,7 +95,7 @@ function logout() {
                             @click="openNotification(n)"
                         >
                             <span :class="!n.read_at ? 'font-bold' : ''">{{ n.title }}</span>
-                            <span class="mt-0.5 block" style="color: var(--text-secondary)"><bdi class="bdi-date" dir="rtl">{{ n.created_at }}</bdi></span>
+                            <span class="mt-0.5 block" style="color: var(--text-secondary)"><FormattedDate :value="n.created_at" /></span>
                         </button>
                         <p v-if="notifications.recent.length === 0" class="p-4 text-center text-xs" style="color: var(--text-secondary)">لا توجد إشعارات بعد.</p>
                         <Link :href="route('platform.notifications.index')" class="block p-2.5 text-center text-xs font-bold text-brand-700 hover:underline" @click="notifOpen = false">عرض كل الإشعارات</Link>
@@ -103,16 +108,16 @@ function logout() {
         </header>
 
         <aside
-            class="glass-bar fixed inset-y-0 right-0 top-16 z-20 hidden w-48 flex-col gap-1 overflow-y-auto p-3 md:flex"
-            style="background: var(--surface-card); border-left: 1px solid var(--border-subtle)"
+            class="glass-bar fixed inset-y-0 end-0 top-16 z-20 hidden w-48 flex-col gap-1 overflow-y-auto p-3 md:flex"
+            style="background: var(--surface-card); border-inline-start: 1px solid var(--border-subtle)"
         >
             <Link
                 v-for="item in navItems"
                 :key="item.route"
                 :href="route(item.route)"
                 class="flex items-center justify-between rounded-pill border border-transparent px-4 py-2.5 text-sm font-semibold shadow-sm transition-[border-color]"
-                :class="route().current(item.route) ? '' : 'hover:border-brand-400'"
-                :style="route().current(item.route) ? 'background: var(--color-ink); color: var(--color-paper)' : 'color: var(--text-primary)'"
+                :class="isActive(item) ? '' : 'hover:border-brand-400'"
+                :style="isActive(item) ? 'background: var(--color-ink); color: var(--color-paper)' : 'color: var(--text-primary)'"
             >
                 <span>{{ item.label }}</span>
                 <span v-if="item.badge" class="text-xs font-extrabold" style="color: #dc2626">{{ item.badge }}</span>
@@ -150,8 +155,8 @@ function logout() {
                         :key="item.route"
                         :href="route(item.route)"
                         class="relative rounded-xl border px-2 py-4 text-center text-sm font-semibold transition-[border-color]"
-                        :class="route().current(item.route) ? 'border-transparent' : 'border-[var(--border-subtle)] hover:border-brand-400'"
-                        :style="route().current(item.route) ? 'background: var(--color-ink); color: var(--color-paper)' : 'color: var(--text-primary)'"
+                        :class="isActive(item) ? 'border-transparent' : 'border-[var(--border-subtle)] hover:border-brand-400'"
+                        :style="isActive(item) ? 'background: var(--color-ink); color: var(--color-paper)' : 'color: var(--text-primary)'"
                         @click="menuOpen = false"
                     >
                         {{ item.label }}

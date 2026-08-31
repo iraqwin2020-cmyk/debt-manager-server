@@ -5,6 +5,7 @@ import PlatformLayout from '@/Layouts/PlatformLayout.vue';
 import ConfirmModal from '@/Components/ConfirmModal.vue';
 import DatePicker from '@/Components/DatePicker.vue';
 import Icon from '@/Components/Icon.vue';
+import FormattedDate from '@/Components/FormattedDate.vue';
 
 const props = defineProps({
     tenant: { type: Object, required: true },
@@ -66,10 +67,10 @@ function saveSubscriptionDate() {
                 <p><span class="font-semibold">النوع:</span> {{ tenant.type }}</p>
                 <p><span class="font-semibold">الباقة:</span> {{ tenant.plan?.name }}</p>
                 <p><span class="font-semibold">الحالة:</span> {{ statusLabels[tenant.status] }}</p>
-                <p v-if="tenant.trial_ends_at"><span class="font-semibold">انتهاء التجربة:</span> <bdi class="bdi-date" dir="rtl">{{ tenant.trial_ends_at }}</bdi></p>
+                <p v-if="tenant.trial_ends_at"><span class="font-semibold">انتهاء التجربة:</span> <FormattedDate :value="tenant.trial_ends_at" /></p>
                 <div v-if="tenant.subscription_ends_at || editingDate">
                     <span class="font-semibold">انتهاء الاشتراك:</span>
-                    <bdi v-if="!editingDate" class="bdi-date" dir="rtl">{{ tenant.subscription_ends_at }}</bdi>
+                    <FormattedDate v-if="!editingDate" :value="tenant.subscription_ends_at" />
                     <button v-if="!editingDate" type="button" class="ms-2 text-xs font-bold text-brand-700 hover:underline" @click="editingDate = true">تعديل يدوي</button>
                     <div v-else class="mt-2 flex items-center gap-2">
                         <DatePicker v-model="subscriptionDate" />
@@ -95,7 +96,7 @@ function saveSubscriptionDate() {
                 <ul class="space-y-2 text-sm">
                     <li v-for="log in logs" :key="log.id" class="border-b pb-2" style="border-color: var(--border-subtle)">
                         <span class="font-semibold">{{ log.action }}</span> — {{ log.description }}
-                        <div style="color: var(--text-secondary)"><bdi class="bdi-date" dir="rtl">{{ log.created_at }}</bdi></div>
+                        <div style="color: var(--text-secondary)"><FormattedDate :value="log.created_at" /></div>
                     </li>
                     <li v-if="logs.length === 0" style="color: var(--text-secondary)">لا توجد حركات بعد.</li>
                 </ul>

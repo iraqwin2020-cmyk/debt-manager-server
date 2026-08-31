@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Icon from '@/Components/Icon.vue';
 import CurrencyAmount from '@/Components/CurrencyAmount.vue';
+import FormattedDate from '@/Components/FormattedDate.vue';
 
 const { t } = useI18n();
 
@@ -40,7 +41,7 @@ function remaining(debt) {
                     <span class="flex-1">
                         <span class="block text-sm font-bold">{{ d.debtor?.name ?? '—' }}</span>
                         <span class="mt-0.5 block text-xs" style="color: var(--text-secondary)">
-                            <CurrencyAmount :currency="d.currency" :amount="remaining(d)" /> — {{ t('notifications.dueOn') }} <bdi class="bdi-date" dir="rtl">{{ d.due_date }}</bdi>
+                            <CurrencyAmount :currency="d.currency" :amount="remaining(d)" /> — {{ t('notifications.dueOn') }} <FormattedDate :value="d.due_date" />
                         </span>
                     </span>
                 </Link>

@@ -6,6 +6,7 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import SelectMenu from '@/Components/SelectMenu.vue';
 import PhoneLink from '@/Components/PhoneLink.vue';
 import CurrencyAmount from '@/Components/CurrencyAmount.vue';
+import FormattedDate from '@/Components/FormattedDate.vue';
 
 const { t } = useI18n();
 
@@ -139,8 +140,8 @@ function sendContactMessage() {
                     <div>
                         <p class="text-sm" style="color: var(--text-secondary)">الحالة الحالية</p>
                         <p class="text-lg font-bold">{{ tenantStatusLabels[tenant.status] }}</p>
-                        <p v-if="tenant.trial_ends_at" class="text-sm">انتهاء التجربة: <bdi class="bdi-date" dir="rtl">{{ tenant.trial_ends_at }}</bdi></p>
-                        <p v-if="tenant.subscription_ends_at" class="text-sm">انتهاء الاشتراك: <bdi class="bdi-date" dir="rtl">{{ tenant.subscription_ends_at }}</bdi></p>
+                        <p v-if="tenant.trial_ends_at" class="text-sm">انتهاء التجربة: <FormattedDate :value="tenant.trial_ends_at" /></p>
+                        <p v-if="tenant.subscription_ends_at" class="text-sm">انتهاء الاشتراك: <FormattedDate :value="tenant.subscription_ends_at" /></p>
                     </div>
                     <form class="space-y-3 border-t pt-6" style="border-color: var(--border-subtle)" @submit.prevent="redeem">
                         <label class="block text-sm font-semibold">إدخال كود تفعيل</label>

@@ -4,6 +4,7 @@ import { router, Link } from '@inertiajs/vue3';
 import PlatformLayout from '@/Layouts/PlatformLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
 import SelectMenu from '@/Components/SelectMenu.vue';
+import FormattedDate from '@/Components/FormattedDate.vue';
 
 const props = defineProps({
     planRequests: { type: Object, required: true },
@@ -66,7 +67,7 @@ function search() {
                     <tr v-for="r in planRequests.data" :key="r.id" class="border-t" style="border-color: var(--border-subtle)">
                         <td class="p-3 font-semibold">{{ r.tenant?.name }}</td>
                         <td class="p-3">{{ r.plan?.name }}</td>
-                        <td class="p-3"><bdi class="bdi-date" dir="rtl">{{ r.created_at }}</bdi></td>
+                        <td class="p-3"><FormattedDate :value="r.created_at" /></td>
                         <td class="p-3"><span class="rounded-pill px-3 py-1 text-xs font-bold" :style="statusColors[r.status]">{{ statusLabels[r.status] }}</span></td>
                         <td class="p-3 text-end">
                             <Link :href="route('platform.plan-requests.show', r.id)" class="text-sm font-bold text-brand-700 hover:underline">عرض</Link>

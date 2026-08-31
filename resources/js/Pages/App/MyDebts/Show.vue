@@ -9,6 +9,7 @@ import MoneyInput from '@/Components/MoneyInput.vue';
 import DatePicker from '@/Components/DatePicker.vue';
 import Icon from '@/Components/Icon.vue';
 import CurrencyAmount from '@/Components/CurrencyAmount.vue';
+import FormattedDate from '@/Components/FormattedDate.vue';
 
 const { t, locale } = useI18n();
 const isRtl = computed(() => RTL_LOCALES.includes(locale.value));
@@ -80,7 +81,7 @@ function submit() {
                 <p class="lg:text-xs"><span class="font-semibold">{{ t('debtors.colAmount') }}:</span> <CurrencyAmount :currency="myDebt.currency" :amount="myDebt.amount" /></p>
                 <p class="lg:text-xs"><span class="font-semibold">{{ t('debtors.colRemaining') }}:</span> <CurrencyAmount :currency="myDebt.currency" :amount="remaining" /></p>
                 <p class="lg:text-xs"><span class="font-semibold">{{ t('debtors.colType') }}:</span> {{ myDebt.payment_type === 'installments' ? t('debtors.typeInstallments') : t('debtors.typeLumpSum') }}</p>
-                <p v-if="myDebt.due_date" class="lg:text-xs"><span class="font-semibold">{{ t('debts.colDueDate') }}:</span> <bdi class="bdi-date" dir="rtl">{{ myDebt.due_date }}</bdi></p>
+                <p v-if="myDebt.due_date" class="lg:text-xs"><span class="font-semibold">{{ t('debts.colDueDate') }}:</span> <FormattedDate :value="myDebt.due_date" /></p>
                 <p v-if="myDebt.description" class="lg:text-xs"><span class="font-semibold">{{ t('debts.colDescription') }}:</span> {{ myDebt.description }}</p>
 
                 <div class="pt-4 lg:pt-2">
@@ -144,7 +145,7 @@ function submit() {
                         </thead>
                         <tbody>
                             <tr v-for="payment in myDebt.payments" :key="payment.id" class="border-t" style="border-color: var(--border-subtle)">
-                                <td class="p-2"><bdi class="bdi-date" dir="rtl">{{ payment.paid_at }}</bdi></td>
+                                <td class="p-2"><FormattedDate :value="payment.paid_at" /></td>
                                 <td class="p-2"><CurrencyAmount :currency="myDebt.currency" :amount="payment.amount" /></td>
                                 <td class="p-2">{{ payment.note || '—' }}</td>
                             </tr>

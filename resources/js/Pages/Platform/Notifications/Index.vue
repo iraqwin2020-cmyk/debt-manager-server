@@ -3,6 +3,7 @@ import { router, Link } from '@inertiajs/vue3';
 import PlatformLayout from '@/Layouts/PlatformLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
 import Icon from '@/Components/Icon.vue';
+import FormattedDate from '@/Components/FormattedDate.vue';
 
 defineProps({
     notifications: { type: Object, required: true },
@@ -42,7 +43,7 @@ function markAllRead() {
                 <li v-for="t in expiringSoon" :key="t.id">
                     <Link :href="route('platform.subscribers.show', t.id)" class="font-semibold hover:underline" style="color: var(--status-danger-text)">{{ t.name }}</Link>
                     <span style="color: var(--status-danger-text)">
-                        — ينتهي <bdi class="bdi-date" dir="rtl">{{ t.subscription_ends_at ?? t.trial_ends_at }}</bdi>
+                        — ينتهي <FormattedDate :value="t.subscription_ends_at ?? t.trial_ends_at" />
                     </span>
                 </li>
             </ul>
@@ -63,7 +64,7 @@ function markAllRead() {
                 </span>
                 <span class="flex-1">
                     <span class="block text-sm" :class="!n.read_at ? 'font-bold' : ''">{{ n.title }}</span>
-                    <span class="mt-0.5 block text-xs" style="color: var(--text-secondary)"><bdi class="bdi-date" dir="rtl">{{ n.created_at }}</bdi></span>
+                    <span class="mt-0.5 block text-xs" style="color: var(--text-secondary)"><FormattedDate :value="n.created_at" /></span>
                 </span>
             </button>
             <p v-if="notifications.data.length === 0" class="p-6 text-center text-sm" style="color: var(--text-secondary)">لا توجد إشعارات بعد.</p>

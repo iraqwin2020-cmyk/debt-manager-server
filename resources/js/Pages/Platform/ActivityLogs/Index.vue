@@ -4,6 +4,7 @@ import { router } from '@inertiajs/vue3';
 import PlatformLayout from '@/Layouts/PlatformLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
 import SelectMenu from '@/Components/SelectMenu.vue';
+import FormattedDate from '@/Components/FormattedDate.vue';
 
 const props = defineProps({
     logs: { type: Object, required: true },
@@ -52,7 +53,7 @@ function search() {
                 </thead>
                 <tbody>
                     <tr v-for="log in logs.data" :key="log.id" class="border-t" style="border-color: var(--border-subtle)">
-                        <td class="p-3"><bdi class="bdi-date" dir="rtl">{{ log.created_at }}</bdi></td>
+                        <td class="p-3"><FormattedDate :value="log.created_at" /></td>
                         <td class="p-3">{{ log.action }}</td>
                         <td class="p-3">{{ log.tenant?.name ?? '—' }}</td>
                         <td class="p-3">{{ log.description }}</td>

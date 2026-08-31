@@ -6,6 +6,7 @@ import Pagination from '@/Components/Pagination.vue';
 import SelectMenu from '@/Components/SelectMenu.vue';
 import Icon from '@/Components/Icon.vue';
 import DatePicker from '@/Components/DatePicker.vue';
+import FormattedDate from '@/Components/FormattedDate.vue';
 
 const props = defineProps({
     codes: { type: Object, required: true },
@@ -118,7 +119,7 @@ const statusLabels = {
                             <Link v-if="code.assigned_tenant" :href="route('platform.subscribers.show', code.assigned_tenant.id)" class="font-semibold text-brand-700 hover:underline">{{ code.assigned_tenant.name }}</Link>
                         </td>
                         <td class="p-3">{{ code.plan?.name }}</td>
-                        <td class="p-3"><bdi class="bdi-date" dir="rtl">{{ code.expires_at }}</bdi></td>
+                        <td class="p-3"><FormattedDate :value="code.expires_at" /></td>
                         <td class="p-3"><span class="rounded-pill px-3 py-1 text-xs font-bold" :style="statusColors[code.status]">{{ statusLabels[code.status] }}</span></td>
                         <td class="p-3 text-end">
                             <button v-if="code.status === 'unused'" type="button" class="text-red-600 hover:underline" @click="cancelCode(code)">إلغاء</button>
