@@ -160,7 +160,7 @@ function logout() {
                         v-for="item in navItems"
                         :key="item.route"
                         :href="route(item.route)"
-                        class="relative rounded-xl border px-2 py-4 text-center text-sm font-semibold transition-[border-color]"
+                        class="relative rounded-full border px-2 py-3 text-center text-sm font-semibold transition-[border-color]"
                         :class="isActive(item) ? 'border-transparent' : 'border-[var(--border-subtle)] hover:border-brand-400'"
                         :style="isActive(item) ? 'background: var(--color-ink); color: var(--color-paper)' : 'color: var(--text-primary)'"
                         @click="menuOpen = false"
