@@ -99,7 +99,7 @@ const dateParts = computed(() => {
                         <span v-if="notifications.count" class="absolute -top-1 -left-1 text-[0.7rem] font-extrabold" style="color: #dc2626">{{ notifications.count }}</span>
                     </button>
                     <div v-if="notifOpen" class="fixed inset-0 z-10" @click="notifOpen = false"></div>
-                    <div v-if="notifOpen" class="absolute start-0 z-20 mt-2 w-72 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border shadow-lg" style="background: var(--surface-solid); border-color: var(--border-subtle)">
+                    <div v-if="notifOpen" class="fixed inset-x-4 top-[4.5rem] z-20 overflow-hidden rounded-2xl border shadow-lg sm:absolute sm:inset-x-auto sm:start-0 sm:top-auto sm:mt-2 sm:w-72" style="background: var(--surface-solid); border-color: var(--border-subtle)">
                         <button
                             v-for="n in notifications.recent"
                             :key="n.id"
