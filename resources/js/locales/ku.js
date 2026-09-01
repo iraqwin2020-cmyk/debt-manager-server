@@ -51,7 +51,6 @@ export default {
         tabs: {
             general: 'گشتی',
             receipts: 'پسوولەکان',
-            subscription: 'بەشداریکردن',
             about: 'دەربارە',
         },
         language: 'زمان',

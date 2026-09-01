@@ -51,7 +51,6 @@ export default {
         tabs: {
             general: 'General',
             receipts: 'Receipts',
-            subscription: 'Subscription',
             about: 'About',
         },
         language: 'Language',

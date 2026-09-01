@@ -25,17 +25,12 @@ const navItems = computed(() => [
     { key: 'myDebts', label: t('nav.myDebts'), route: 'app.my-debts.index', match: ['app.my-debts.*'] },
     { key: 'favorites', label: t('nav.favorites'), route: 'app.debtors.favorites', match: ['app.debtors.favorites', 'app.debtors.toggle-favorite'] },
     { key: 'notifications', label: t('nav.notifications'), route: 'app.notifications.index', match: ['app.notifications.*'], badge: notifications.value.count },
-    { key: 'subscriptions', label: t('nav.subscriptions'), route: 'app.settings.edit', params: { tab: 'subscription' }, match: ['app.settings.*'] },
+    { key: 'subscriptions', label: t('nav.subscriptions'), route: 'app.subscription.edit', match: ['app.subscription.*'] },
     { key: 'settings', label: t('nav.settings'), route: 'app.settings.edit', match: ['app.settings.*'] },
 ]);
 
 function isActive(item) {
-    const routeMatches = item.match.some((pattern) => route().current(pattern));
-    if (!routeMatches) return false;
-    if (item.route !== 'app.settings.edit') return true;
-
-    const currentTab = new URLSearchParams(window.location.search).get('tab');
-    return item.params?.tab ? currentTab === item.params.tab : currentTab !== 'subscription';
+    return item.match.some((pattern) => route().current(pattern));
 }
 
 const menuOpen = ref(false);

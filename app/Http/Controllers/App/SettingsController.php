@@ -31,14 +31,23 @@ class SettingsController extends Controller
                 ...$tenant->toArray(),
                 'logo' => $tenant->logo ? Storage::disk('public')->url($tenant->logo) : null,
             ],
-            'plans' => Plan::where('is_default_trial', false)->orderBy('price')->get(),
-            'planRequests' => PlanUpgradeRequest::where('tenant_id', $tenant->id)->with('plan')->latest()->get(),
             'about' => [
                 'description' => PlatformSetting::get('about_description', ''),
                 'whatsapp' => PlatformSetting::get('about_whatsapp', ''),
                 'email' => PlatformSetting::get('about_email', ''),
                 'company_name' => PlatformSetting::get('about_company_name', ''),
             ],
+        ]);
+    }
+
+    public function subscriptionEdit(Request $request): Response
+    {
+        $tenant = $request->user()->tenant;
+
+        return Inertia::render('App/Subscription/Edit', [
+            'tenant' => $tenant,
+            'plans' => Plan::where('is_default_trial', false)->orderBy('price')->get(),
+            'planRequests' => PlanUpgradeRequest::where('tenant_id', $tenant->id)->with('plan')->latest()->get(),
         ]);
     }
 

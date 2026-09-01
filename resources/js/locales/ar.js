@@ -51,7 +51,6 @@ export default {
         tabs: {
             general: 'عام',
             receipts: 'الإيصالات',
-            subscription: 'الاشتراك',
             about: 'حول',
         },
         language: 'اللغة',

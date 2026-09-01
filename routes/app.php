@@ -39,6 +39,8 @@ Route::middleware(['auth:web', 'owner'])->prefix('app')->name('app.')->group(fun
 
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
 
+    Route::get('subscription', [SettingsController::class, 'subscriptionEdit'])->name('subscription.edit');
+
     Route::get('settings', [SettingsController::class, 'edit'])->name('settings.edit');
     Route::get('settings/account', [SettingsController::class, 'accountEdit'])->name('settings.account.edit');
     Route::patch('settings/account', [SettingsController::class, 'updateAccount'])->name('settings.account');
