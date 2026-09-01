@@ -81,14 +81,16 @@ class HandleInertiaRequests extends Middleware
             ->with('debtor:id,name')
             ->latest('due_date')
             ->take(5)
-            ->get(['id', 'debtor_id', 'amount', 'paid_amount', 'currency', 'due_date']);
+            ->get(['id', 'debtor_id', 'amount', 'paid_amount', 'currency', 'due_date'])
+            ->toBase();
 
         $dueToday = (clone $debtsQuery)
             ->whereColumn('paid_amount', '<', 'amount')
             ->where('due_date', now()->toDateString())
             ->with('debtor:id,name')
             ->take(5)
-            ->get(['id', 'debtor_id', 'amount', 'paid_amount', 'currency', 'due_date']);
+            ->get(['id', 'debtor_id', 'amount', 'paid_amount', 'currency', 'due_date'])
+            ->toBase();
 
         $format = function ($debt, string $prefix) {
             $remaining = number_format($debt->amount - $debt->paid_amount).' '.($debt->currency === 'USD' ? '$' : 'د.ع');
