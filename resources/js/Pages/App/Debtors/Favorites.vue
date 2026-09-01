@@ -7,6 +7,7 @@ import Pagination from '@/Components/Pagination.vue';
 import PhoneLink from '@/Components/PhoneLink.vue';
 import Icon from '@/Components/Icon.vue';
 import CurrencyAmount from '@/Components/CurrencyAmount.vue';
+import StatCard from '@/Components/StatCard.vue';
 
 const { t } = useI18n();
 
@@ -34,6 +35,12 @@ function remainingEntries(remaining) {
 <template>
     <AppLayout>
         <h1 class="mb-6 text-lg font-extrabold sm:text-2xl">{{ t('debtors.favoritesTitle') }}</h1>
+
+        <div class="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <StatCard :label="t('debtors.favoritesCountLabel')" :value="debtors.total">
+                <template #icon><Icon name="star" /></template>
+            </StatCard>
+        </div>
 
         <div class="mb-4 flex gap-3">
             <input

@@ -8,6 +8,7 @@ import PhoneLink from '@/Components/PhoneLink.vue';
 import SelectMenu from '@/Components/SelectMenu.vue';
 import Icon from '@/Components/Icon.vue';
 import CurrencyAmount from '@/Components/CurrencyAmount.vue';
+import StatCard from '@/Components/StatCard.vue';
 
 const { t } = useI18n();
 
@@ -38,6 +39,12 @@ function remainingEntries(remaining) {
         <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
             <h1 class="text-lg font-extrabold sm:text-2xl">{{ t('debtors.title') }}</h1>
             <Link :href="route('app.debtors.create')" class="rounded-pill bg-brand-600 px-5 py-2 text-sm font-bold text-white">{{ t('common.add') }}</Link>
+        </div>
+
+        <div class="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <StatCard :label="t('debtors.countLabel')" :value="debtors.total">
+                <template #icon><Icon name="users" /></template>
+            </StatCard>
         </div>
 
         <div class="mb-4 flex flex-wrap gap-3">

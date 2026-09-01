@@ -5,6 +5,8 @@ import { useI18n } from 'vue-i18n';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
 import PhoneLink from '@/Components/PhoneLink.vue';
+import StatCard from '@/Components/StatCard.vue';
+import Icon from '@/Components/Icon.vue';
 
 const { t } = useI18n();
 
@@ -25,6 +27,12 @@ function search() {
         <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
             <h1 class="text-lg font-extrabold sm:text-2xl">{{ t('nav.guarantors') }}</h1>
             <Link :href="route('app.guarantors.create')" class="rounded-pill bg-brand-600 px-5 py-2 text-sm font-bold text-white">{{ t('common.add') }}</Link>
+        </div>
+
+        <div class="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <StatCard :label="t('guarantors.countLabel')" :value="guarantors.total">
+                <template #icon><Icon name="users" /></template>
+            </StatCard>
         </div>
 
         <div class="mb-4 flex gap-3">

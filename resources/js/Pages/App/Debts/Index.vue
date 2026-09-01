@@ -7,6 +7,8 @@ import Pagination from '@/Components/Pagination.vue';
 import SelectMenu from '@/Components/SelectMenu.vue';
 import CurrencyAmount from '@/Components/CurrencyAmount.vue';
 import FormattedDate from '@/Components/FormattedDate.vue';
+import StatCard from '@/Components/StatCard.vue';
+import Icon from '@/Components/Icon.vue';
 
 const { t } = useI18n();
 
@@ -42,6 +44,12 @@ function rowClass(debt) {
         <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
             <h1 class="text-lg font-extrabold sm:text-2xl">{{ t('nav.debts') }}</h1>
             <Link :href="route('app.debts.create')" class="rounded-pill bg-brand-600 px-5 py-2 text-sm font-bold text-white">{{ t('common.add') }}</Link>
+        </div>
+
+        <div class="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <StatCard :label="t('debts.countLabel')" :value="debts.total">
+                <template #icon><Icon name="wallet" /></template>
+            </StatCard>
         </div>
 
         <div class="mb-4 flex flex-wrap gap-3">
