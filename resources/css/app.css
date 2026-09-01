@@ -95,10 +95,15 @@
     --shadow-card: 0 14px 34px -10px rgb(0 0 0 / 0.5);
 }
 
+html {
+    overscroll-behavior-y: none;
+}
+
 body {
     background: var(--surface-page);
     background-attachment: fixed;
     color: var(--text-primary);
+    overscroll-behavior-y: none;
 }
 
 /* زجاجية: تُضاف فوق أي عنصر يستخدم rounded-card أو glass-bar، بلا حاجة لتعديل كل صفحة */
