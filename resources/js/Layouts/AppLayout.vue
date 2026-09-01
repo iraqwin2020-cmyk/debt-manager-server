@@ -177,7 +177,7 @@ const dateParts = computed(() => {
         <!-- القائمة المنسدلة من الأسفل (هاتف) -->
         <div v-if="menuOpen" class="fixed inset-0 z-40 md:hidden">
             <div class="absolute inset-0 bg-black/10" @click="menuOpen = false"></div>
-            <div class="glass-bar absolute inset-x-0 bottom-0 rounded-t-2xl p-4 pb-6" style="background: var(--surface-card)">
+            <div class="absolute inset-x-0 bottom-0 rounded-t-2xl p-4 pb-6 shadow-lg" style="background: var(--surface-solid)">
                 <div class="grid grid-cols-3 gap-2.5">
                     <Link
                         v-for="item in navItems"
