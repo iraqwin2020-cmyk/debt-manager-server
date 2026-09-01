@@ -63,12 +63,12 @@ function sendContactMessage() {
         <h1 class="mb-6 text-lg font-extrabold sm:text-2xl">{{ t('settings.title') }}</h1>
 
         <div class="flex flex-col gap-6 md:flex-row">
-            <div class="flex gap-2 overflow-x-auto md:w-48 md:flex-col">
+            <div class="flex gap-1 overflow-x-auto md:w-48 md:flex-col md:gap-2">
                 <button
                     v-for="t in tabs"
                     :key="t.key"
                     type="button"
-                    class="whitespace-nowrap rounded-pill border border-transparent px-4 py-2.5 text-sm font-semibold transition-[border-color]"
+                    class="min-w-0! whitespace-nowrap rounded-pill border border-transparent px-2.5 py-2.5 text-sm font-semibold transition-[border-color] md:px-4 md:min-w-24!"
                     :class="tab === t.key ? 'bg-brand-600 text-white' : 'hover:border-brand-400'"
                     :style="tab === t.key ? '' : 'color: var(--text-primary)'"
                     @click="tab = t.key"
