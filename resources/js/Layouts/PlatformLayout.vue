@@ -65,8 +65,8 @@ function logout() {
     <div class="min-h-screen" style="background: var(--surface-page)">
         <FlashToast />
         <header
-            class="glass-bar fixed inset-x-0 top-0 z-30 flex h-16 items-center justify-between px-4 md:px-6"
-            style="background: var(--surface-card); border-bottom: 1px solid var(--border-subtle)"
+            class="fixed inset-x-0 top-0 z-30 flex h-16 items-center justify-between px-4 shadow-sm md:px-6"
+            style="background: var(--surface-solid); border-bottom: 1px solid var(--border-solid)"
         >
             <span class="font-extrabold text-brand-700">لوحة مدير المشروع</span>
             <div class="flex items-center gap-2">
@@ -114,8 +114,8 @@ function logout() {
         </header>
 
         <aside
-            class="glass-bar fixed inset-y-0 start-0 top-16 z-20 hidden w-48 flex-col gap-1 overflow-y-auto p-3 md:flex"
-            style="background: var(--surface-card); border-inline-end: 1px solid var(--border-subtle)"
+            class="fixed inset-y-0 start-0 top-16 z-20 hidden w-48 flex-col gap-1 overflow-y-auto p-3 shadow-sm md:flex"
+            style="background: var(--surface-solid); border-inline-end: 1px solid var(--border-solid)"
         >
             <Link
                 v-for="item in navItems"
@@ -138,8 +138,8 @@ function logout() {
         </main>
 
         <footer
-            class="glass-bar fixed inset-x-0 bottom-0 z-20 flex items-center justify-around border-t p-2 md:hidden"
-            style="background: var(--surface-card); border-color: var(--border-subtle)"
+            class="fixed inset-x-0 bottom-0 z-20 flex items-center justify-around border-t p-2 shadow-lg md:hidden"
+            style="background: var(--surface-solid); border-color: var(--border-solid)"
         >
             <button type="button" class="flex flex-col items-center gap-0.5 px-6 py-1 text-xs font-semibold" style="color: var(--text-primary)" @click="menuOpen = true">
                 <Icon name="menu" />

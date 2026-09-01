@@ -64,8 +64,8 @@ const dateParts = computed(() => {
 
         <!-- الهيدر -->
         <header
-            class="glass-bar fixed inset-x-0 top-0 z-30 flex h-16 items-center justify-between px-4 md:px-6"
-            style="background: var(--surface-card); border-bottom: 1px solid var(--border-subtle)"
+            class="fixed inset-x-0 top-0 z-30 flex h-16 items-center justify-between px-4 shadow-sm md:px-6"
+            style="background: var(--surface-solid); border-bottom: 1px solid var(--border-solid)"
         >
             <div class="flex items-center gap-3">
                 <img v-if="tenant?.logo" :src="tenant.logo" alt="" class="h-9 w-9 rounded-full object-cover" />
@@ -126,8 +126,8 @@ const dateParts = computed(() => {
 
         <!-- القائمة الجانبية (حاسوب) -->
         <aside
-            class="glass-bar fixed inset-y-0 start-0 top-16 z-20 hidden w-48 flex-col gap-1 overflow-y-auto p-3 md:flex"
-            style="background: var(--surface-card); border-inline-end: 1px solid var(--border-subtle)"
+            class="fixed inset-y-0 start-0 top-16 z-20 hidden w-48 flex-col gap-1 overflow-y-auto p-3 shadow-sm md:flex"
+            style="background: var(--surface-solid); border-inline-end: 1px solid var(--border-solid)"
         >
             <div class="mb-6 mt-4 flex flex-col items-center gap-2">
                 <img v-if="tenant?.logo" :src="tenant.logo" alt="" class="h-16 w-16 rounded-full object-cover shadow-sm" />
@@ -157,8 +157,8 @@ const dateParts = computed(() => {
 
         <!-- فوتر الهاتف -->
         <nav
-            class="glass-bar fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 md:hidden"
-            style="background: var(--surface-card); border-top: 1px solid var(--border-subtle)"
+            class="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 shadow-lg md:hidden"
+            style="background: var(--surface-solid); border-top: 1px solid var(--border-solid)"
         >
             <Link :href="route('app.dashboard')" class="flex flex-col items-center gap-1 py-2.5 text-xs font-semibold">
                 <span class="text-lg"><Icon name="home" /></span> {{ t('nav.home') }}
