@@ -29,6 +29,12 @@ function isActive(item) {
 const menuOpen = ref(false);
 const notifOpen = ref(false);
 
+const desktopQuery = window.matchMedia('(min-width: 768px)');
+function closeMobileMenuIfDesktop() {
+    if (desktopQuery.matches) menuOpen.value = false;
+}
+onMounted(() => desktopQuery.addEventListener('change', closeMobileMenuIfDesktop));
+
 function openNotification(n) {
     notifOpen.value = false;
     if (!n.read_at) {

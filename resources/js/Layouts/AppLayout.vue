@@ -33,6 +33,12 @@ function isActive(item) {
 
 const menuOpen = ref(false);
 
+const desktopQuery = window.matchMedia('(min-width: 768px)');
+function closeMobileMenuIfDesktop() {
+    if (desktopQuery.matches) menuOpen.value = false;
+}
+onMounted(() => desktopQuery.addEventListener('change', closeMobileMenuIfDesktop));
+
 const theme = ref(tenant.value?.theme ?? 'light');
 function applyTheme(value) {
     document.documentElement.setAttribute('data-theme', value);
