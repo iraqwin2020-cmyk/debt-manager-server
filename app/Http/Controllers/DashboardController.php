@@ -32,6 +32,7 @@ class DashboardController extends Controller
                     ->whereColumn('paid_amount', '<', 'amount')
                     ->where('due_date', now()->toDateString())
                     ->count(),
+                'favoritesCount' => $tenant->debtors()->where('is_favorite', true)->count(),
             ],
         ]);
     }

@@ -70,6 +70,7 @@ export default {
         customersCount: 'Number of Customers',
         overdue: 'Overdue',
         dueToday: "Due Today",
+        favorites: 'Favorites',
         newDebt: 'New Debt',
         payDebt: 'Pay a Debt',
     },

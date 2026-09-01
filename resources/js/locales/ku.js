@@ -70,6 +70,7 @@ export default {
         customersCount: 'ژمارەی کڕیارەکان',
         overdue: 'دواکەوتووەکان',
         dueToday: 'گەیشتنی ئەمڕۆ',
+        favorites: 'دڵخوازەکان',
         newDebt: 'قەرزی نوێ',
         payDebt: 'پارەدانی قەرز',
     },

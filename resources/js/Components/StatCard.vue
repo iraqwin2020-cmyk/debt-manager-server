@@ -6,6 +6,7 @@ defineProps({
     value: { type: [String, Number], required: true },
     icon: { type: String, default: 'chart' },
     href: { type: String, default: null },
+    dark: { type: Boolean, default: false },
 });
 </script>
 
@@ -19,7 +20,9 @@ defineProps({
     >
         <span
             class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-base sm:h-14 sm:w-14 sm:rounded-2xl sm:text-2xl"
-            style="background: linear-gradient(135deg, var(--color-brand-400), var(--color-brand-600)); color: #fff; box-shadow: 0 8px 18px -4px rgb(232 96 12 / 0.45)"
+            :style="dark
+                ? 'background: var(--color-ink); color: var(--color-paper); box-shadow: 0 8px 18px -4px rgb(0 0 0 / 0.45)'
+                : 'background: linear-gradient(135deg, var(--color-brand-400), var(--color-brand-600)); color: #fff; box-shadow: 0 8px 18px -4px rgb(232 96 12 / 0.45)'"
         >
             <slot name="icon"><Icon :name="icon" /></slot>
         </span>

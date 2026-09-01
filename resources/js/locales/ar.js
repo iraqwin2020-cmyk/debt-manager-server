@@ -70,6 +70,7 @@ export default {
         customersCount: 'عدد العملاء',
         overdue: 'المتأخرات',
         dueToday: 'استحقاقات اليوم',
+        favorites: 'المفضلة',
         newDebt: 'دين جديد',
         payDebt: 'تسديد دفعة',
     },
