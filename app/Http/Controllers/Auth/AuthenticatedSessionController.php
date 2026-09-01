@@ -74,7 +74,7 @@ class AuthenticatedSessionController extends Controller
             ]);
         }
 
-        return redirect()->intended(route('dashboard', absolute: false))
+        return redirect()->intended(route('app.dashboard', absolute: false))
             ->cookie(DeviceService::COOKIE_NAME, $result['token'], 60 * 24 * 365)
             ->cookie('remembered_phone', $user->phone, 60 * 24 * 365);
     }

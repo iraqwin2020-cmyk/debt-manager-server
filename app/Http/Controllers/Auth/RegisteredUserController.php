@@ -58,7 +58,7 @@ class RegisteredUserController extends Controller
         Auth::guard('web')->login($user);
 
         $result = $devices->checkAndRegister($tenant);
-        $response = redirect()->intended(route('dashboard', absolute: false));
+        $response = redirect()->intended(route('app.dashboard', absolute: false));
 
         if ($result['allowed']) {
             $response->cookie(DeviceService::COOKIE_NAME, $result['token'], 60 * 24 * 365);
