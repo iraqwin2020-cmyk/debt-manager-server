@@ -160,13 +160,13 @@ function logout() {
                         v-for="item in navItems"
                         :key="item.route"
                         :href="route(item.route)"
-                        class="relative rounded-pill border border-transparent text-center font-semibold shadow-sm transition-[border-color]"
+                        class="flex items-center justify-center gap-1 rounded-pill border border-transparent font-semibold shadow-sm transition-[border-color]"
                         :class="isActive(item) ? '' : 'hover:border-brand-400'"
                         :style="isActive(item) ? 'background: var(--color-ink); color: var(--color-paper)' : 'color: var(--text-primary)'"
                         @click="menuOpen = false"
                     >
-                        {{ item.label }}
-                        <span v-if="item.badge" class="absolute -top-1 -left-1 text-xs font-extrabold" style="color: #dc2626">{{ item.badge }}</span>
+                        <span>{{ item.label }}</span>
+                        <span v-if="item.badge" class="text-xs font-extrabold" style="color: #dc2626">{{ item.badge }}</span>
                     </Link>
                 </div>
                 <div class="mt-3 flex items-center justify-center">
