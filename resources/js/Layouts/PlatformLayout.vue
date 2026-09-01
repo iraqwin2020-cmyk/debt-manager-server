@@ -133,7 +133,7 @@ function logout() {
             </button>
         </aside>
 
-        <main class="p-4 pt-20 pb-20 md:ms-48 md:pb-4">
+        <main class="p-4 pt-20 pb-20 md:ms-48 md:px-6 md:pb-4">
             <slot />
         </main>
 

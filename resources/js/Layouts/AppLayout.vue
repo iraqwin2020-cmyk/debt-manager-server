@@ -151,7 +151,7 @@ const dateParts = computed(() => {
         </aside>
 
         <!-- المحتوى -->
-        <main class="px-4 pt-20 pb-24 md:ms-48 md:pb-10">
+        <main class="px-4 pt-20 pb-24 md:ms-48 md:px-6 md:pb-10">
             <slot />
         </main>
 
