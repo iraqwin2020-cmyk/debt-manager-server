@@ -17,7 +17,9 @@ const props = defineProps({
     about: { type: Object, required: true },
 });
 
-const tab = ref('general');
+const validTabs = ['general', 'receipts', 'subscription', 'about'];
+const requestedTab = new URLSearchParams(window.location.search).get('tab');
+const tab = ref(validTabs.includes(requestedTab) ? requestedTab : 'general');
 const tabs = computed(() => [
     { key: 'general', label: t('settings.tabs.general') },
     { key: 'receipts', label: t('settings.tabs.receipts') },

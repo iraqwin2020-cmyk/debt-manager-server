@@ -13,18 +13,20 @@ const notifications = computed(() => page.props.tenantNotifications ?? { count: 
 const notifOpen = ref(false);
 
 const navItems = computed(() => [
-    { label: t('nav.home'), route: 'app.dashboard', match: ['app.dashboard'] },
+    { key: 'home', label: t('nav.home'), route: 'app.dashboard', match: ['app.dashboard'] },
     {
+        key: 'debtors',
         label: t('nav.debtors'),
         route: 'app.debtors.index',
         match: ['app.debtors.index', 'app.debtors.create', 'app.debtors.store', 'app.debtors.show', 'app.debtors.edit', 'app.debtors.update', 'app.debtors.destroy', 'app.debtors.id-document', 'app.debtors.debts', 'app.debtors.statement'],
     },
-    { label: t('nav.guarantors'), route: 'app.guarantors.index', match: ['app.guarantors.*'] },
-    { label: t('nav.debts'), route: 'app.debts.index', match: ['app.debts.*'] },
-    { label: t('nav.myDebts'), route: 'app.my-debts.index', match: ['app.my-debts.*'] },
-    { label: t('nav.favorites'), route: 'app.debtors.favorites', match: ['app.debtors.favorites', 'app.debtors.toggle-favorite'] },
-    { label: t('nav.notifications'), route: 'app.notifications.index', match: ['app.notifications.*'], badge: notifications.value.count },
-    { label: t('nav.settings'), route: 'app.settings.edit', match: ['app.settings.*'] },
+    { key: 'guarantors', label: t('nav.guarantors'), route: 'app.guarantors.index', match: ['app.guarantors.*'] },
+    { key: 'debts', label: t('nav.debts'), route: 'app.debts.index', match: ['app.debts.*'] },
+    { key: 'myDebts', label: t('nav.myDebts'), route: 'app.my-debts.index', match: ['app.my-debts.*'] },
+    { key: 'favorites', label: t('nav.favorites'), route: 'app.debtors.favorites', match: ['app.debtors.favorites', 'app.debtors.toggle-favorite'] },
+    { key: 'notifications', label: t('nav.notifications'), route: 'app.notifications.index', match: ['app.notifications.*'], badge: notifications.value.count },
+    { key: 'subscriptions', label: t('nav.subscriptions'), route: 'app.settings.edit', params: { tab: 'subscription' }, match: ['app.settings.*'] },
+    { key: 'settings', label: t('nav.settings'), route: 'app.settings.edit', match: ['app.settings.*'] },
 ]);
 
 function isActive(item) {
@@ -139,8 +141,8 @@ const dateParts = computed(() => {
 
             <Link
                 v-for="item in navItems"
-                :key="item.route"
-                :href="route(item.route)"
+                :key="item.key"
+                :href="route(item.route, item.params)"
                 class="flex items-center justify-between rounded-pill border border-transparent px-4 py-2.5 text-sm font-semibold shadow-sm transition-[border-color]"
                 :class="isActive(item) ? '' : 'hover:border-brand-400'"
                 :style="isActive(item) ? 'background: var(--color-ink); color: var(--color-paper)' : 'color: var(--text-primary)'"
@@ -181,8 +183,8 @@ const dateParts = computed(() => {
                 <div class="grid grid-cols-3 gap-2.5">
                     <Link
                         v-for="item in navItems"
-                        :key="item.route"
-                        :href="route(item.route)"
+                        :key="item.key"
+                        :href="route(item.route, item.params)"
                         class="flex items-center justify-center gap-1 rounded-pill border border-transparent font-semibold shadow-sm transition-[border-color]"
                         :class="isActive(item) ? '' : 'hover:border-brand-400'"
                         :style="isActive(item) ? 'background: var(--color-ink); color: var(--color-paper)' : 'color: var(--text-primary)'"

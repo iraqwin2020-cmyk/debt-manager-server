@@ -33,6 +33,7 @@ export default {
         myDebts: 'ديوني',
         favorites: 'المفضلة',
         notifications: 'الإشعارات',
+        subscriptions: 'الاشتراكات',
         settings: 'الإعدادات',
         menu: 'القائمة',
         newDebt: 'دين جديد',
