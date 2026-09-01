@@ -108,8 +108,8 @@ function logout() {
         </header>
 
         <aside
-            class="glass-bar fixed inset-y-0 end-0 top-16 z-20 hidden w-48 flex-col gap-1 overflow-y-auto p-3 md:flex"
-            style="background: var(--surface-card); border-inline-start: 1px solid var(--border-subtle)"
+            class="glass-bar fixed inset-y-0 start-0 top-16 z-20 hidden w-48 flex-col gap-1 overflow-y-auto p-3 md:flex"
+            style="background: var(--surface-card); border-inline-end: 1px solid var(--border-subtle)"
         >
             <Link
                 v-for="item in navItems"
