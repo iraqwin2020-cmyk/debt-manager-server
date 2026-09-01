@@ -27,19 +27,19 @@ function amounts(obj) {
         </div>
 
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-            <StatCard :label="t('dashboard.debts')" :value="0">
+            <StatCard :label="t('dashboard.debts')" :value="0" tall>
                 <template #icon><Icon name="wallet" /></template>
                 <div v-for="a in amounts(stats.owedToMe)" :key="a.cur">
                     <CurrencyAmount :currency="a.cur" :amount="a.val" />
                 </div>
             </StatCard>
-            <StatCard :href="route('app.debtors.index')" :label="t('dashboard.customersCount')" :value="stats.debtorsCount">
+            <StatCard :href="route('app.debtors.index')" :label="t('dashboard.customersCount')" :value="stats.debtorsCount" tall>
                 <template #icon><Icon name="users" /></template>
             </StatCard>
-            <StatCard :href="route('app.debts.index', { status: 'overdue' })" :label="t('dashboard.overdue')" :value="stats.overdueCount">
+            <StatCard :href="route('app.debts.index', { status: 'overdue' })" :label="t('dashboard.overdue')" :value="stats.overdueCount" tall>
                 <template #icon><Icon name="warning" /></template>
             </StatCard>
-            <StatCard :href="route('app.debts.index')" :label="t('dashboard.dueToday')" :value="stats.dueTodayCount">
+            <StatCard :href="route('app.debts.index')" :label="t('dashboard.dueToday')" :value="stats.dueTodayCount" tall>
                 <template #icon><Icon name="calendar" /></template>
             </StatCard>
             <StatCard :href="route('app.debtors.favorites')" :label="t('dashboard.favorites')" :value="stats.favoritesCount" dark class="sm:col-span-2">

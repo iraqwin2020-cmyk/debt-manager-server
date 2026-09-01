@@ -7,6 +7,7 @@ defineProps({
     icon: { type: String, default: 'chart' },
     href: { type: String, default: null },
     dark: { type: Boolean, default: false },
+    tall: { type: Boolean, default: false },
 });
 </script>
 
@@ -15,7 +16,7 @@ defineProps({
         :is="href ? 'a' : 'div'"
         :href="href"
         class="flex items-center gap-2 rounded-card border transition sm:gap-4"
-        :class="[href ? 'cursor-pointer hover:-translate-y-0.5 hover:shadow-lg' : '', dark ? 'px-3 py-6 sm:px-5 sm:py-10' : 'p-3 sm:p-5']"
+        :class="[href ? 'cursor-pointer hover:-translate-y-0.5 hover:shadow-lg' : '', tall || dark ? 'px-3 py-6 sm:px-5 sm:py-10' : 'p-3 sm:p-5']"
         :style="dark
             ? 'background: var(--color-ink); box-shadow: var(--shadow-card); border-color: var(--color-ink)'
             : 'background: var(--surface-card); box-shadow: var(--shadow-card); border-color: var(--border-subtle)'"
