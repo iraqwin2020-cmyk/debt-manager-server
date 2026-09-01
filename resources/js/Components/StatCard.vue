@@ -15,8 +15,8 @@ defineProps({
     <component
         :is="href ? 'a' : 'div'"
         :href="href"
-        class="flex items-center gap-2 rounded-card border transition sm:gap-4"
-        :class="[href ? 'cursor-pointer hover:-translate-y-0.5 hover:shadow-lg' : '', tall || dark ? 'px-3 py-6 sm:px-5 sm:py-10' : 'p-3 sm:p-5']"
+        class="flex items-center gap-2 overflow-hidden rounded-card border transition sm:gap-4"
+        :class="[href ? 'cursor-pointer hover:-translate-y-0.5 hover:shadow-lg' : '', tall || dark ? 'h-28 px-3 sm:h-36 sm:px-5' : 'p-3 sm:p-5']"
         :style="dark
             ? 'background: var(--color-ink); box-shadow: var(--shadow-card); border-color: var(--color-ink)'
             : 'background: var(--surface-card); box-shadow: var(--shadow-card); border-color: var(--border-subtle)'"

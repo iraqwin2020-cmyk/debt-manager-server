@@ -29,10 +29,8 @@ function amounts(obj) {
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
             <StatCard :label="t('dashboard.debts')" :value="0" tall>
                 <template #icon><Icon name="wallet" /></template>
-                <div class="flex flex-wrap items-baseline gap-x-2">
-                    <div v-for="a in amounts(stats.owedToMe)" :key="a.cur">
-                        <CurrencyAmount :currency="a.cur" :amount="a.val" />
-                    </div>
+                <div v-for="a in amounts(stats.owedToMe)" :key="a.cur">
+                    <CurrencyAmount :currency="a.cur" :amount="a.val" />
                 </div>
             </StatCard>
             <StatCard :href="route('app.debtors.index')" :label="t('dashboard.customersCount')" :value="stats.debtorsCount" tall>
