@@ -42,7 +42,7 @@ function amounts(obj) {
             <StatCard :href="route('app.debts.index')" :label="t('dashboard.dueToday')" :value="stats.dueTodayCount">
                 <template #icon><Icon name="calendar" /></template>
             </StatCard>
-            <StatCard :href="route('app.debtors.favorites')" :label="t('dashboard.favorites')" :value="stats.favoritesCount" dark>
+            <StatCard :href="route('app.debtors.favorites')" :label="t('dashboard.favorites')" :value="stats.favoritesCount" dark class="sm:col-span-2">
                 <template #icon><Icon name="star" /></template>
             </StatCard>
         </div>
