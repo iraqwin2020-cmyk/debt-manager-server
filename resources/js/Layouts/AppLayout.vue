@@ -115,7 +115,7 @@ const dateParts = computed(() => {
                         <Link :href="route('app.notifications.index')" class="block p-2.5 text-center text-xs font-bold text-brand-700 hover:underline" @click="notifOpen = false">{{ t('header.viewAllNotifications') }}</Link>
                     </div>
                 </div>
-                <Link :href="route('app.settings.account.edit')" class="flex items-center gap-2 rounded-pill border border-transparent px-3 py-1.5 transition-[border-color] hover:border-brand-400" style="color: var(--text-primary)">
+                <Link :href="route('app.settings.account.edit')" class="flex items-center gap-2 rounded-pill border border-transparent ps-3! pe-0! py-1.5 transition-[border-color] hover:border-brand-400" style="color: var(--text-primary)">
                     <span class="text-sm font-semibold">{{ user?.name }}</span>
                     <span class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold text-white" style="background: linear-gradient(135deg, var(--color-brand-300), var(--color-brand-500)); box-shadow: 0 6px 16px -4px rgb(232 96 12 / 0.4)">
                         {{ user?.name?.charAt(0) }}
