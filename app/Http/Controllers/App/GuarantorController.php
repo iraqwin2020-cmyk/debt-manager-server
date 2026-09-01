@@ -117,6 +117,6 @@ class GuarantorController extends Controller
 
         $guarantor->delete();
 
-        return back()->with('success', 'تم نقل الكفيل لسلة المحذوفات.');
+        return redirect()->route('app.guarantors.index')->with('success', 'تم نقل الكفيل لسلة المحذوفات.');
     }
 }

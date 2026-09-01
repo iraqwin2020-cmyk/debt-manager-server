@@ -138,7 +138,7 @@ class DebtorController extends Controller
 
         $debtor->delete();
 
-        return back()->with('success', 'تم نقل العميل لسلة المحذوفات.');
+        return redirect()->route('app.debtors.index')->with('success', 'تم نقل العميل لسلة المحذوفات.');
     }
 
     public function toggleFavorite(Debtor $debtor): RedirectResponse
