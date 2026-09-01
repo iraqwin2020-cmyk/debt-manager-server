@@ -47,6 +47,7 @@
     --text-secondary: #5c503e;
     --text-on-dark: #f7f1e7;
     --border-subtle: rgba(255, 255, 255, 0.55);
+    --border-solid: rgba(32, 24, 15, 0.16);
     --shadow-card: 0 14px 34px -10px rgb(90 65 30 / 0.22);
 
     --status-success-bg: #e6f3e2;
@@ -73,6 +74,7 @@
         --text-secondary: #bfae97;
         --text-on-dark: #f7f1e7;
         --border-subtle: rgba(255, 233, 211, 0.12);
+        --border-solid: rgba(255, 233, 211, 0.18);
         --shadow-card: 0 14px 34px -10px rgb(0 0 0 / 0.5);
     }
 }
@@ -89,6 +91,7 @@
     --text-secondary: #bfae97;
     --text-on-dark: #f7f1e7;
     --border-subtle: rgba(255, 233, 211, 0.12);
+    --border-solid: rgba(255, 233, 211, 0.18);
     --shadow-card: 0 14px 34px -10px rgb(0 0 0 / 0.5);
 }
 
