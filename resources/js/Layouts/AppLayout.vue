@@ -30,7 +30,12 @@ const navItems = computed(() => [
 ]);
 
 function isActive(item) {
-    return item.match.some((pattern) => route().current(pattern));
+    const routeMatches = item.match.some((pattern) => route().current(pattern));
+    if (!routeMatches) return false;
+    if (item.route !== 'app.settings.edit') return true;
+
+    const currentTab = new URLSearchParams(window.location.search).get('tab');
+    return item.params?.tab ? currentTab === item.params.tab : currentTab !== 'subscription';
 }
 
 const menuOpen = ref(false);
