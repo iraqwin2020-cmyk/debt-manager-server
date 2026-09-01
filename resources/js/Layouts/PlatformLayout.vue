@@ -82,7 +82,7 @@ function logout() {
                 <div class="relative">
                     <button
                         type="button"
-                        class="relative flex h-9 w-9 items-center justify-center rounded-full border border-transparent transition-[border-color] hover:border-brand-400"
+                        class="relative flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-xl transition-[border-color] hover:border-brand-400"
                         style="color: var(--text-primary)"
                         @click="notifOpen = !notifOpen"
                     >
@@ -142,11 +142,11 @@ function logout() {
             style="background: var(--surface-solid); border-color: var(--border-solid)"
         >
             <button type="button" class="flex flex-col items-center gap-0.5 px-6 py-1 text-xs font-semibold" style="color: var(--text-primary)" @click="menuOpen = true">
-                <Icon name="menu" />
+                <span class="text-2xl"><Icon name="menu" /></span>
                 القائمة
             </button>
             <Link :href="route('platform.dashboard')" class="flex flex-col items-center gap-0.5 px-6 py-1 text-xs font-semibold" style="color: var(--text-primary)">
-                <Icon name="home" />
+                <span class="text-2xl"><Icon name="home" /></span>
                 الرئيسية
             </Link>
         </footer>

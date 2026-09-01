@@ -91,7 +91,7 @@ const dateParts = computed(() => {
                 <div class="relative">
                     <button
                         type="button"
-                        class="relative flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-sm transition-[border-color] hover:border-brand-400"
+                        class="relative flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-xl transition-[border-color] hover:border-brand-400"
                         style="color: var(--text-primary)"
                         @click="notifOpen = !notifOpen"
                     >
@@ -161,16 +161,16 @@ const dateParts = computed(() => {
             style="background: var(--surface-solid); border-top: 1px solid var(--border-solid)"
         >
             <Link :href="route('app.dashboard')" class="flex flex-col items-center gap-1 py-2.5 text-xs font-semibold">
-                <span class="text-lg"><Icon name="home" /></span> {{ t('nav.home') }}
+                <span class="text-2xl"><Icon name="home" /></span> {{ t('nav.home') }}
             </Link>
             <button type="button" class="flex flex-col items-center gap-1 py-2.5 text-xs font-semibold" @click="menuOpen = true">
-                <span class="text-lg"><Icon name="menu" /></span> {{ t('nav.menu') }}
+                <span class="text-2xl"><Icon name="menu" /></span> {{ t('nav.menu') }}
             </button>
             <Link :href="route('app.debts.create')" class="flex flex-col items-center gap-1 py-2.5 text-xs font-semibold">
-                <span class="text-lg"><Icon name="plus" /></span> {{ t('nav.newDebt') }}
+                <span class="text-2xl"><Icon name="plus" /></span> {{ t('nav.newDebt') }}
             </Link>
             <Link :href="route('app.payments.create')" class="flex flex-col items-center gap-1 py-2.5 text-xs font-semibold">
-                <span class="text-lg"><Icon name="cash" /></span> {{ t('nav.pay') }}
+                <span class="text-2xl"><Icon name="cash" /></span> {{ t('nav.pay') }}
             </Link>
         </nav>
 
