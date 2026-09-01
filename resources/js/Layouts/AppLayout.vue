@@ -96,7 +96,7 @@ const dateParts = computed(() => {
                         @click="notifOpen = !notifOpen"
                     >
                         <Icon name="bell" />
-                        <span v-if="notifications.count" class="absolute top-1 left-1.5 text-[0.7rem] font-extrabold" style="color: #dc2626">{{ notifications.count }}</span>
+                        <span v-if="notifications.count" class="absolute top-0.5 left-1 text-[0.7rem] font-extrabold" style="color: #dc2626">{{ notifications.count }}</span>
                     </button>
                     <div v-if="notifOpen" class="fixed inset-0 z-10" @click="notifOpen = false"></div>
                     <div v-if="notifOpen" class="fixed inset-x-4 top-[4.5rem] z-20 overflow-hidden rounded-2xl border shadow-lg sm:inset-x-auto sm:end-4 sm:w-72" style="background: var(--surface-solid); border-color: var(--border-subtle)">
