@@ -63,7 +63,7 @@ function sendContactMessage() {
         <h1 class="mb-6 text-lg font-extrabold sm:text-2xl">{{ t('settings.title') }}</h1>
 
         <div class="flex flex-col gap-6 md:flex-row">
-            <div class="flex gap-1 overflow-x-auto md:w-48 md:flex-col md:gap-2">
+            <div class="flex justify-between gap-1 overflow-x-auto md:w-48 md:flex-col md:justify-start md:gap-2">
                 <button
                     v-for="t in tabs"
                     :key="t.key"
