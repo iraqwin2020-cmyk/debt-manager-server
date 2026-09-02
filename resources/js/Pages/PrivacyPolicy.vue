@@ -1,13 +1,16 @@
 <script setup>
+import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import LanguageSwitcher from '@/Components/LanguageSwitcher.vue';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
-defineProps({
-    content: { type: String, default: '' },
+const props = defineProps({
+    content: { type: Object, default: () => ({ ar: '', en: '', ku: '' }) },
 });
+
+const currentContent = computed(() => props.content[locale.value] || props.content.ar || '');
 </script>
 
 <template>
@@ -20,7 +23,7 @@ defineProps({
 
             <div class="rounded-card p-6 sm:p-8" style="background: var(--surface-card); box-shadow: var(--shadow-card)">
                 <h1 class="mb-4 text-lg font-extrabold sm:text-2xl">{{ t('auth.welcome.privacyPolicy') }}</h1>
-                <p v-if="content" class="whitespace-pre-wrap text-sm leading-relaxed">{{ content }}</p>
+                <p v-if="currentContent" class="whitespace-pre-wrap text-sm leading-relaxed">{{ currentContent }}</p>
                 <p v-else class="text-sm" style="color: var(--text-secondary)">{{ t('privacyPolicy.empty') }}</p>
             </div>
         </div>

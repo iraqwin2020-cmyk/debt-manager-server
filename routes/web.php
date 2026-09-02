@@ -15,7 +15,11 @@ Route::get('/', function () {
 
 Route::get('privacy-policy', function () {
     return Inertia::render('PrivacyPolicy', [
-        'content' => PlatformSetting::get('privacy_policy', ''),
+        'content' => [
+            'ar' => PlatformSetting::get('privacy_policy_ar', PlatformSetting::get('privacy_policy', '')),
+            'en' => PlatformSetting::get('privacy_policy_en', ''),
+            'ku' => PlatformSetting::get('privacy_policy_ku', ''),
+        ],
     ]);
 })->name('privacy-policy');
 

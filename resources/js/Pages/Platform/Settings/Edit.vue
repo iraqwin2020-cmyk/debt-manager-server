@@ -6,7 +6,7 @@ import PlatformLayout from '@/Layouts/PlatformLayout.vue';
 const props = defineProps({
     settings: { type: Object, required: true },
     about: { type: Object, required: true },
-    privacyPolicy: { type: String, default: '' },
+    privacyPolicy: { type: Object, default: () => ({ ar: '', en: '', ku: '' }) },
 });
 
 const tab = ref('general');
@@ -36,11 +36,20 @@ function saveAbout() {
 }
 
 const privacyForm = useForm({
-    privacy_policy: props.privacyPolicy,
+    privacy_policy_ar: props.privacyPolicy.ar,
+    privacy_policy_en: props.privacyPolicy.en,
+    privacy_policy_ku: props.privacyPolicy.ku,
 });
 function savePrivacy() {
     privacyForm.patch(route('platform.settings.privacy-policy'), { preserveScroll: true });
 }
+
+const policyLangTab = ref('ar');
+const policyLangs = [
+    { key: 'ar', label: 'عربي' },
+    { key: 'en', label: 'English' },
+    { key: 'ku', label: 'کوردی' },
+];
 
 </script>
 
@@ -138,8 +147,26 @@ function savePrivacy() {
                     </p>
                     <div>
                         <label class="mb-1 block text-sm font-semibold">نص سياسة الخصوصية</label>
-                        <textarea v-model="privacyForm.privacy_policy" rows="16" class="w-full rounded-xl border px-4 py-2.5" style="border-color: var(--border-subtle)"></textarea>
-                        <p v-if="privacyForm.errors.privacy_policy" class="mt-1 text-sm text-red-600">{{ privacyForm.errors.privacy_policy }}</p>
+                        <div class="mb-2 flex gap-1.5">
+                            <button
+                                v-for="lang in policyLangs"
+                                :key="lang.key"
+                                type="button"
+                                class="rounded-pill border-2 px-3 py-1 text-xs font-bold transition"
+                                :style="policyLangTab === lang.key
+                                    ? 'border-color: var(--color-brand-600); background: var(--color-brand-600); color: #fff'
+                                    : 'border-color: var(--border-subtle); color: var(--text-secondary)'"
+                                @click="policyLangTab = lang.key"
+                            >
+                                {{ lang.label }}
+                            </button>
+                        </div>
+                        <textarea v-show="policyLangTab === 'ar'" v-model="privacyForm.privacy_policy_ar" rows="16" class="w-full rounded-xl border px-4 py-2.5" style="border-color: var(--border-subtle)"></textarea>
+                        <textarea v-show="policyLangTab === 'en'" v-model="privacyForm.privacy_policy_en" dir="ltr" rows="16" class="w-full rounded-xl border px-4 py-2.5 text-start" style="border-color: var(--border-subtle)"></textarea>
+                        <textarea v-show="policyLangTab === 'ku'" v-model="privacyForm.privacy_policy_ku" rows="16" class="w-full rounded-xl border px-4 py-2.5" style="border-color: var(--border-subtle)"></textarea>
+                        <p v-if="privacyForm.errors.privacy_policy_ar" class="mt-1 text-sm text-red-600">{{ privacyForm.errors.privacy_policy_ar }}</p>
+                        <p v-if="privacyForm.errors.privacy_policy_en" class="mt-1 text-sm text-red-600">{{ privacyForm.errors.privacy_policy_en }}</p>
+                        <p v-if="privacyForm.errors.privacy_policy_ku" class="mt-1 text-sm text-red-600">{{ privacyForm.errors.privacy_policy_ku }}</p>
                     </div>
                     <button type="submit" :disabled="privacyForm.processing" class="rounded-pill bg-brand-600 px-6 py-2.5 font-bold text-white">حفظ</button>
                 </form>

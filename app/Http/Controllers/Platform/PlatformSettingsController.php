@@ -27,7 +27,11 @@ class PlatformSettingsController extends Controller
                 'about_email' => PlatformSetting::get('about_email', ''),
                 'about_company_name' => PlatformSetting::get('about_company_name', ''),
             ],
-            'privacyPolicy' => PlatformSetting::get('privacy_policy', ''),
+            'privacyPolicy' => [
+                'ar' => PlatformSetting::get('privacy_policy_ar', PlatformSetting::get('privacy_policy', '')),
+                'en' => PlatformSetting::get('privacy_policy_en', ''),
+                'ku' => PlatformSetting::get('privacy_policy_ku', ''),
+            ],
         ]);
     }
 
@@ -129,13 +133,21 @@ class PlatformSettingsController extends Controller
     public function updatePrivacyPolicy(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'privacy_policy' => ['required', 'string', 'max:20000'],
+            'privacy_policy_ar' => ['required', 'string', 'max:20000'],
+            'privacy_policy_en' => ['nullable', 'string', 'max:20000'],
+            'privacy_policy_ku' => ['nullable', 'string', 'max:20000'],
         ], [
             'required' => 'حقل :attribute مطلوب.',
             'max' => 'قيمة :attribute أطول من الحد المسموح.',
-        ], ['privacy_policy' => 'نص سياسة الخصوصية']);
+        ], [
+            'privacy_policy_ar' => 'نص سياسة الخصوصية (عربي)',
+            'privacy_policy_en' => 'نص سياسة الخصوصية (إنجليزي)',
+            'privacy_policy_ku' => 'نص سياسة الخصوصية (كردي)',
+        ]);
 
-        PlatformSetting::set('privacy_policy', $validated['privacy_policy']);
+        foreach ($validated as $key => $value) {
+            PlatformSetting::set($key, $value ?? '');
+        }
 
         return back()->with('success', 'تم حفظ سياسة الخصوصية.');
     }
