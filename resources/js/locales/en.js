@@ -33,7 +33,7 @@ export default {
         myDebts: 'My Debts',
         favorites: 'Favorites',
         notifications: 'Notifications',
-        subscriptions: 'Subscriptions',
+        subscriptions: 'Activation',
         settings: 'Settings',
         menu: 'Menu',
         newDebt: 'New Debt',

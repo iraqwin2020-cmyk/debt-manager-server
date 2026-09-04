@@ -33,7 +33,7 @@ export default {
         myDebts: 'قەرزی من',
         favorites: 'دڵخوازەکان',
         notifications: 'ئاگادارکردنەوەکان',
-        subscriptions: 'ئابونمانەکان',
+        subscriptions: 'چالاککردن',
         settings: 'ڕێکخستنەکان',
         menu: 'لیستە',
         newDebt: 'قەرزی نوێ',
