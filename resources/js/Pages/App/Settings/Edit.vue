@@ -122,6 +122,7 @@ function sendContactMessage() {
 
                     <div class="space-y-2 border-t pt-6 text-sm" style="border-color: var(--border-subtle)">
                         <p v-if="about.whatsapp"><span class="font-semibold">للتواصل عبر واتساب:</span> <PhoneLink :phone="about.whatsapp" /></p>
+                        <p v-if="about.email"><span class="font-semibold">البريد الإلكتروني:</span> <bdi class="bdi-ltr">{{ about.email }}</bdi></p>
                         <p v-if="about.company_name"><span class="font-semibold">الشركة المطوّرة:</span> {{ about.company_name }}</p>
                         <p><a :href="route('privacy-policy')" target="_blank" rel="noopener" class="font-semibold text-brand-700 hover:underline">سياسة الخصوصية</a></p>
                     </div>
