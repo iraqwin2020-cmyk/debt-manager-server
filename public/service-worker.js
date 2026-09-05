@@ -1,5 +1,5 @@
-const CACHE_NAME = 'debt-manager-v1';
-const OFFLINE_ASSETS = ['/manifest.json', '/icon-192.png', '/icon-512.png'];
+const CACHE_NAME = 'debt-manager-v2';
+const OFFLINE_ASSETS = ['/manifest.json', '/icon-192-v2.png', '/icon-512-v2.png'];
 
 self.addEventListener('install', (event) => {
     event.waitUntil(

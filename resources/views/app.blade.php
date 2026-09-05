@@ -6,8 +6,8 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <meta name="theme-color" content="#e8600c">
         <link rel="manifest" href="{{ request()->is('platform*') ? '/manifest-platform.json' : '/manifest.json' }}">
-        <link rel="icon" href="/icon-192.png">
-        <link rel="apple-touch-icon" href="/icon-192.png">
+        <link rel="icon" href="/icon-192-v2.png">
+        <link rel="apple-touch-icon" href="/icon-192-v2.png">
 
         <title inertia>{{ config('app.name', 'مدير الديون') }}</title>
 
