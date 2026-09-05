@@ -46,7 +46,6 @@ class SettingsController extends Controller
 
         return Inertia::render('App/Subscription/Edit', [
             'tenant' => $tenant,
-            'plans' => Plan::where('is_default_trial', false)->orderBy('price')->get(),
             'planRequests' => PlanUpgradeRequest::where('tenant_id', $tenant->id)->with('plan')->latest()->get(),
         ]);
     }

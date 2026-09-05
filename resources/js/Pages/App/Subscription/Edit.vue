@@ -2,26 +2,18 @@
 import { useForm } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import CurrencyAmount from '@/Components/CurrencyAmount.vue';
 import FormattedDate from '@/Components/FormattedDate.vue';
 
 const { t } = useI18n();
 
 const props = defineProps({
     tenant: { type: Object, required: true },
-    plans: { type: Array, default: () => [] },
     planRequests: { type: Array, default: () => [] },
 });
 
 const codeForm = useForm({ code: '' });
 function redeem() {
     codeForm.post(route('app.settings.redeem-code'), { preserveScroll: true, onSuccess: () => codeForm.reset() });
-}
-
-const requestForm = useForm({ plan_id: null });
-function requestPlan(planId) {
-    requestForm.plan_id = planId;
-    requestForm.post(route('app.settings.request-plan'), { preserveScroll: true });
 }
 
 const planRequestStatusLabels = { pending: 'قيد الانتظار', approved: 'مقبول', rejected: 'مرفوض' };
@@ -46,35 +38,6 @@ const tenantStatusLabels = { active: 'نشط', trial: 'تجربة', expired: 'م
                 <p v-if="codeForm.errors.code" class="text-sm text-red-600">{{ codeForm.errors.code }}</p>
                 <button type="submit" :disabled="codeForm.processing" class="rounded-pill bg-brand-600 px-6 py-2.5 font-bold text-white">تفعيل</button>
             </form>
-
-            <div class="border-t pt-6" style="border-color: var(--border-subtle)">
-                <h2 class="mb-3 font-bold">الباقات المتاحة</h2>
-                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <div
-                        v-for="plan in plans"
-                        :key="plan.id"
-                        class="rounded-xl border p-4"
-                        :class="tenant.plan_id === plan.id ? 'border-brand-600' : ''"
-                        style="border-color: var(--border-subtle)"
-                    >
-                        <p class="font-bold">{{ plan.name }}</p>
-                        <p class="text-sm" style="color: var(--text-secondary)">
-                            <CurrencyAmount currency="IQD" :amount="plan.price" /> / {{ plan.duration_days }} يوم
-                        </p>
-                        <p class="text-xs" style="color: var(--text-secondary)">حد العملاء: {{ plan.max_debtors }} — حد الأجهزة: {{ plan.max_devices }}</p>
-                        <span v-if="tenant.plan_id === plan.id" class="mt-2 inline-block rounded-pill bg-brand-600 px-3 py-1 text-xs font-bold text-white">باقتك الحالية</span>
-                        <button
-                            v-else
-                            type="button"
-                            :disabled="requestForm.processing"
-                            class="mt-2 rounded-pill border-2 border-brand-600 px-4 py-1.5 text-xs font-bold text-brand-700"
-                            @click="requestPlan(plan.id)"
-                        >
-                            طلب هذه الباقة
-                        </button>
-                    </div>
-                </div>
-            </div>
 
             <div v-if="planRequests.length" class="border-t pt-6" style="border-color: var(--border-subtle)">
                 <h2 class="mb-3 font-bold">طلباتي السابقة</h2>
