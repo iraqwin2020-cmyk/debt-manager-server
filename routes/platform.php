@@ -20,6 +20,7 @@ Route::middleware(['auth:platform', 'platform_admin'])->prefix('platform')->name
     Route::patch('subscribers/{tenant}/status', [SubscriberController::class, 'updateStatus'])->name('subscribers.update-status');
     Route::patch('subscribers/{tenant}/subscription-date', [SubscriberController::class, 'updateSubscriptionDate'])->name('subscribers.update-subscription-date');
     Route::post('subscribers/{tenant}/logout-devices', [SubscriberController::class, 'logoutAllDevices'])->name('subscribers.logout-devices');
+    Route::post('subscribers/{tenant}/activate', [SubscriberController::class, 'activateDirectly'])->name('subscribers.activate');
     Route::delete('subscribers/{tenant}', [SubscriberController::class, 'destroy'])->name('subscribers.destroy');
 
     Route::get('plans', [PlanController::class, 'index'])->name('plans.index');

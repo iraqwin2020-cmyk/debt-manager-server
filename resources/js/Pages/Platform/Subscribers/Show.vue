@@ -4,6 +4,7 @@ import { router, Link } from '@inertiajs/vue3';
 import PlatformLayout from '@/Layouts/PlatformLayout.vue';
 import ConfirmModal from '@/Components/ConfirmModal.vue';
 import DatePicker from '@/Components/DatePicker.vue';
+import SelectMenu from '@/Components/SelectMenu.vue';
 import Icon from '@/Components/Icon.vue';
 import FormattedDate from '@/Components/FormattedDate.vue';
 
@@ -12,13 +13,16 @@ const props = defineProps({
     debtorsCount: { type: Number, required: true },
     devicesCount: { type: Number, required: true },
     logs: { type: Array, required: true },
+    plans: { type: Array, required: true },
 });
 
 const showCancelConfirm = ref(false);
 const showDeleteConfirm = ref(false);
 const showLogoutDevicesConfirm = ref(false);
+const showActivateConfirm = ref(false);
 const editingDate = ref(false);
 const subscriptionDate = ref(props.tenant.subscription_ends_at?.slice(0, 10) ?? '');
+const activatePlanId = ref(props.tenant.plan_id ?? '');
 
 const statusLabels = {
     active: 'نشط',
@@ -45,6 +49,11 @@ function destroyTenant() {
 function logoutAllDevices() {
     showLogoutDevicesConfirm.value = false;
     router.post(route('platform.subscribers.logout-devices', props.tenant.id), {}, { preserveScroll: true });
+}
+
+function activateDirectly() {
+    showActivateConfirm.value = false;
+    router.post(route('platform.subscribers.activate', props.tenant.id), { plan_id: activatePlanId.value }, { preserveScroll: true });
 }
 
 function saveSubscriptionDate() {
@@ -80,6 +89,14 @@ function saveSubscriptionDate() {
                 </div>
                 <p><span class="font-semibold">عدد العملاء:</span> {{ debtorsCount }} / {{ tenant.plan?.max_debtors }}</p>
                 <p><span class="font-semibold">عدد الأجهزة:</span> {{ devicesCount }} / {{ tenant.plan?.max_devices }}</p>
+
+                <div class="flex flex-wrap items-end gap-2 border-t pt-4" style="border-color: var(--border-subtle)">
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold" style="color: var(--text-secondary)">تفعيل فوري بباقة مختارة (بلا كود)</label>
+                        <SelectMenu v-model="activatePlanId" :options="plans.map((p) => ({ value: p.id, label: p.name }))" />
+                    </div>
+                    <button type="button" class="rounded-pill bg-brand-600 px-5 py-2 text-sm font-bold text-white" :disabled="!activatePlanId" @click="showActivateConfirm = true">تفعيل فوري</button>
+                </div>
 
                 <div class="flex flex-wrap gap-2 pt-4">
                     <button v-if="tenant.status === 'suspended'" type="button" class="rounded-pill bg-brand-600 px-5 py-2 text-sm font-bold text-white" @click="setStatus('active')">تفعيل</button>
@@ -120,6 +137,14 @@ function saveSubscriptionDate() {
             danger
             @confirm="destroyTenant"
             @cancel="showDeleteConfirm = false"
+        />
+        <ConfirmModal
+            :show="showActivateConfirm"
+            title="تفعيل فوري"
+            :message="`تفعيل باقة «${plans.find((p) => p.id === activatePlanId)?.name}» لهذا المشترك فوراً بلا كود تفعيل؟`"
+            confirm-label="تفعيل فوري"
+            @confirm="activateDirectly"
+            @cancel="showActivateConfirm = false"
         />
         <ConfirmModal
             :show="showLogoutDevicesConfirm"

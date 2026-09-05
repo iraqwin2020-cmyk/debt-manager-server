@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Platform;
 
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
+use App\Models\Plan;
 use App\Models\Tenant;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -39,7 +40,30 @@ class SubscriberController extends Controller
             'debtorsCount' => $tenant->debtors()->count(),
             'devicesCount' => $tenant->devices()->count(),
             'logs' => ActivityLog::where('tenant_id', $tenant->id)->latest()->limit(20)->get(),
+            'plans' => Plan::orderBy('price')->get(['id', 'name', 'duration_days']),
         ]);
+    }
+
+    public function activateDirectly(Request $request, Tenant $tenant): RedirectResponse
+    {
+        $validated = $request->validate([
+            'plan_id' => ['required', 'exists:plans,id'],
+        ], [
+            'required' => 'حقل :attribute مطلوب.',
+            'exists' => ':attribute غير موجودة.',
+        ], ['plan_id' => 'الباقة']);
+
+        $plan = Plan::findOrFail($validated['plan_id']);
+
+        $tenant->update([
+            'plan_id' => $plan->id,
+            'status' => 'active',
+            'subscription_ends_at' => now()->addDays($plan->duration_days ?? 30),
+        ]);
+
+        ActivityLog::record('tenant_activated_directly', "تفعيل فوري لباقة \"{$plan->name}\" لصالح {$tenant->name} من لوحة الإدارة", $tenant->id);
+
+        return back()->with('success', "تم تفعيل باقة \"{$plan->name}\" لهذا المشترك فوراً.");
     }
 
     public function updateStatus(Request $request, Tenant $tenant): RedirectResponse
