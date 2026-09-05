@@ -47,6 +47,7 @@ class SettingsController extends Controller
         return Inertia::render('App/Subscription/Edit', [
             'tenant' => $tenant,
             'planRequests' => PlanUpgradeRequest::where('tenant_id', $tenant->id)->with('plan')->latest()->get(),
+            'contactPhone' => PlatformSetting::get('about_whatsapp', ''),
         ]);
     }
 
