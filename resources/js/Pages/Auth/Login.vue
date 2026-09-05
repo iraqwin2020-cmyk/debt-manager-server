@@ -2,6 +2,7 @@
 import { useForm, Link } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import LanguageSwitcher from '@/Components/LanguageSwitcher.vue';
+import FlashToast from '@/Components/FlashToast.vue';
 
 const { t } = useI18n();
 
@@ -20,6 +21,7 @@ function submit() {
 
 <template>
     <div class="flex min-h-screen items-center justify-center px-4" style="background: var(--surface-page)">
+        <FlashToast />
         <form
             class="w-full max-w-sm space-y-5 rounded-card p-8"
             style="background: var(--surface-card); box-shadow: var(--shadow-card)"
